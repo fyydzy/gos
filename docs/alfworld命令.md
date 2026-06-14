@@ -278,7 +278,7 @@ uv run python evaluation/alfworld_run.py --model gpt-4o-mini --split dev --use_s
 
 ```bash
 # 第一次
-uv run python evaluation/alfworld_run.py --model gpt-4o --split dev --use_skill --mode vector --gos_workspace data/gos_workspace/skills_200_v1 --skills_dir data/skillsets/skills_200 --max_workers 1 --max_steps 30 --exp_name full_vector_run1
+uv run python evaluation/alfworld_run.py --model gpt-4o-mimi --split dev --use_skill --mode vector --gos_workspace data/gos_workspace/skills_500_v1 --skills_dir data/skillsets/skills_500 --max_workers 1 --max_steps 30 --exp_name full_vector_run1
 # 第二次：将 --exp_name 改为 full_vector_run2
 ```
 
@@ -299,4 +299,74 @@ uv run python evaluation/alfworld_run.py --model gpt-4o --split dev --use_skill 
 find results/alfworld/gpt-4o/dev_full_gos_run1_mode_gos -name "idx_*.json" | wc -l
 ```
 
-**最终提取核心指标对比：** `平均 reward / 成功率`  `平均 steps`  `平均 token_usage.total_tokens`  `平均 agent_runtime_seconds`
+**汇总核心指标**（脚本：`evaluation/aggregate_alfworld_results.py`）
+
+从结果目录下所有 `idx_*.json` 计算：
+
+
+| 指标                    | JSON 字段                            |
+| --------------------- | ---------------------------------- |
+| 平均 reward / 成功率       | `reward`（0/1 均值）                   |
+| 平均 steps              | `steps`                            |
+| 平均 token              | `token_usage.total_tokens`         |
+| 平均 agent-only runtime | `agent_runtime_seconds`（不含环境 init） |
+
+
+**1）140 局完整实验（默认 `--expected-games 140`，缺局会提示缺失 idx）：**
+
+```bash
+uv run python evaluation/aggregate_alfworld_results.py \
+  results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos
+```
+
+**2）smoke / 前 10 局（`--max_games 10` 时目录名示例，需显式 `--expected-games 10`）：**
+
+```bash
+uv run python evaluation/aggregate_alfworld_results.py \
+  results/alfworld/gpt-4o-mini/dev_eval10_gos_skills500_mode_gos \
+  --expected-games 10
+```
+
+**3）论文两次 run 对比（表格 + `mean_of_runs` 行，即两次 run 各指标再取平均）：**
+
+```bash
+uv run python evaluation/aggregate_alfworld_results.py --compare \
+  results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos \
+  results/alfworld/gpt-4o-mini/dev_full_gos_run2_mode_gos
+```
+
+**4）机器可读 JSON（写表 / 脚本下游用）：**
+
+```bash
+uv run python evaluation/aggregate_alfworld_results.py --json \
+  results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos
+```
+
+**5）同时看多组实验（例如 gos / vector / none 各跑完一次）：**
+
+```bash
+uv run python evaluation/aggregate_alfworld_results.py --compare \
+  results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos \
+  results/alfworld/gpt-4o-mini/dev_full_vector_run1_mode_vector \
+  results/alfworld/gpt-4o-mini/dev_full_none_run1_mode_none
+```
+
+结果目录命名规则（与 `alfworld_run.py` 一致）：
+
+```text
+results/alfworld/{model}/{split}_{exp_name}_mode_{mode}/
+```
+
+例如：`results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos/idx_0.json`
+
+```bash
+# 1. 追踪并保存所有修改过的文件（注意 add 后面有个空格和英文句号）
+git add .
+
+# 2. 提交修改，并写一条简短的备注（引号里的字换成你这次具体改了什么）
+git commit -m "修改了xxx参数 / 添加了xxx新功能"
+
+# 3. 把最新的代码推送到 GitHub 云端
+git push
+```
+
