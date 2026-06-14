@@ -1,0 +1,352 @@
+{
+    "query": "put a hot plate in cabinet.",
+    "name": "pick_heat_then_place_in_recep-Plate-None-Cabinet-1/trial_T20190908_070946_578973",
+    "task_done": false,
+    "reward": false,
+    "steps": 30,
+    "messages": [
+        {
+            "role": "system",
+            "content": "Interact with a household to solve a task. Imagine you are an intelligent agent in a household environment and your target is to perform actions to complete the task goal. At the beginning of your interactions, you will be given the detailed description of the current environment and your goal to accomplish. \nFor each turn, think briefly and then choose exactly one of these two outputs:\n1. `Thought: ...` followed by `Action: ...` for a normal environment action.\n2. `Thought: ...` followed by `SkillRequest: ...` if you want extra skill help before acting.\n\nUse `SkillRequest` when it directly helps the next step, especially if you are blocked, the action syntax is unclear, the retrieved skill names look unrelated to the current blocker, or 1-2 actions already failed. In GoS mode, prefer `SkillRequest: GOS_RETRIEVE ...` when you need a better-targeted skill search. In vector mode, prefer `SkillRequest: VECTOR_RETRIEVE ...` when you need a better-targeted vector-only search. Use `READ_SKILL` only when you already know which exact skill is worth reading. Do not output both `Action:` and `SkillRequest:` in the same turn.\n\nThe available actions are:\n1. go to {recep}\n2. take {obj} from {recep}\n3. move {obj} to {recep}\n4. open {recep}\n5. close {recep}\n6. use {obj}\n7. clean {obj} with {recep}\n8. heat {obj} with {recep}\n9. cool {obj} with {recep}\nwhere {obj} and {recep} correspond to objects and receptacles.\nAfter your each turn, the environment will give you immediate feedback based on which you plan your next few steps. if the envrionment output \"Nothing happened\", that means the previous action is invalid and you should try more options.\n\nYour response should use one of the following formats:\n\nThought: <your thoughts>\nAction: <your next action>\n\nor\n\nThought: <your thoughts>\nSkillRequest: <your tool-style request>"
+        },
+        {
+            "role": "user",
+            "content": "Tool-style skill access is available in this run.\nUse it when you are blocked, the syntax is unclear, the retrieved skills look mismatched to the current blocker, or 1-2 actions already failed.\nUse skills conditionally, not by default: if the next environment action is already obvious from the current observation, act directly instead of retrieving.\nPrefer retrieval when the exact syntax is unclear, the task needs a multi-step procedure or tool setup, the current shortlist looks mismatched, or 1-2 recent actions failed.\nPrefer READ_SKILL when you already have a promising exact skill name. For measurement, electrical connection, conditional placement, or any unfamiliar procedure, do not guess the syntax twice in a row; retrieve first, then read the single best skill before continuing.\nMirror the current benchmark vocabulary in retrieval queries. Reuse the task's own object, property, tool, room, and container words instead of naming a different environment.\nIn a request turn, output exactly two lines: `Thought: ...` and `SkillRequest: ...`. Do not output an `Action:` line in the same turn.\nAvailable requests:\n- `SkillRequest: VECTOR_RETRIEVE <short focused query>` to run vector-only retrieval again. This uses embedding similarity only, without graph propagation or lexical expansion.\n- `SkillRequest: READ_SKILL <exact skill name>` to read a known skill file. Use this only when you already know the exact skill you want.\nExamples:\n- `Thought: I already have a good shortlist and need the exact instructions from one candidate.`\n  `SkillRequest: READ_SKILL <exact shortlisted skill name>`\n- `Thought: The current shortlist looks noisy. I need a narrower vector retrieval grounded in the current task.`\n  `SkillRequest: VECTOR_RETRIEVE <target object> <property or subgoal> <tool if needed> <room> <destination container>`\n- `Thought: I failed twice and need vector retrieval that mirrors the current blocker instead of guessing again.`\n  `SkillRequest: VECTOR_RETRIEVE <task-specific keywords from the current benchmark only>`\nUse skill requests sparingly, only when they directly help the next action. In vector mode, prefer `VECTOR_RETRIEVE` before guessing again, and `READ_SKILL` only after a specific skill name looks relevant."
+        },
+        {
+            "role": "user",
+            "content": "You are in the middle of a room. Looking quickly around you, you see a cabinet 9, a cabinet 8, a cabinet 7, a cabinet 6, a cabinet 5, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a coffeemachine 1, a countertop 3, a countertop 2, a countertop 1, a drawer 9, a drawer 8, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a fridge 1, a garbagecan 1, a microwave 1, a shelf 3, a shelf 2, a shelf 1, a sinkbasin 1, a stoveburner 4, a stoveburner 3, a stoveburner 2, a stoveburner 1, and a toaster 1.\nYour task is to: put a hot plate in cabinet."
+        },
+        {
+            "role": "user",
+            "content": "Vector-skills retrieval guidance:\n\nRetrieval Status: SKILL_HIT\n\nTop retrieved skills: alfworld-heat-object-with-appliance, alfworld-object-heater, alfworld-temperature-regulator\n\nRetrieved skill summaries:\n- alfworld-heat-object-with-appliance: Uses a heating appliance (microwave, stoveburner, oven) to apply heat to a specified object. Use when the task requires warming or cooking an item (e.g., \"heat some egg\", \"warm the mug\") and a heating appliance is available. Takes the object name and appliance name as input and outputs the object in a heated state, ready for placement at the task's target location.\n- alfworld-object-heater: Heats a specified object using an available heating appliance (e.g., microwave, stoveburner). Use when you are holding an object that requires heating and need to navigate to and operate the heating appliance. Takes the object and appliance as inputs and results in the object being in a heated state.\n- alfworld-temperature-regulator: Manages the temperature state of an object by placing it into an appropriate appliance (fridge for cooling, microwave for heating). Use when the task requires modifying an object's temperature property, such as \"cool some bread\" or \"heat some food\". Takes the object identifier, temperature-modifying receptacle, and final target receptacle as inputs, and outputs the object at the target location with its temperature state changed.\n\nUse retrieval only as weak high-level guidance. Prioritize the shortest path from current observation to task completion.\n\nDo not follow a rigid room-wide search checklist if the current observation already reveals the target object or target receptacle.\n\nIf the environment feedback or reward indicates the task is complete, stop issuing new actions immediately.\n\nFor ALFWorld action syntax: first navigate to the destination receptacle, then use the exact action form 'move {obj} to {recep}'.\n\nDo not use 'use {obj}' unless the task explicitly requires turning on, heating, cooling, or cleaning something.\n\nIf the current retrieved skills look mismatched to the blocker, or 1-2 actions already failed, issue `SkillRequest: VECTOR_RETRIEVE <short focused query>`. After vector retrieval surfaces a plausible exact skill name, prefer `READ_SKILL` for that single candidate before another uncertain action."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to heat the hot plate before putting it in a cabinet. The microwave or stoveburner could be used for that purpose. I will first retrieve the hot plate to heat it. \nAction: take hot plate from countertop 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "user",
+            "content": "Additional runtime skill support was injected because: runtime_failure:nothing happens.\n\nUse the following skill details only if they directly help recover and reach the shortest path to completion.\n\nSelected skills: alfworld-heat-object-with-appliance, alfworld-object-heater\n\n## Skill: alfworld-heat-object-with-appliance\nSource: evaluation/skillsbench/skillsets/skills_500/alfworld-heat-object-with-appliance/SKILL.md\n---\nname: alfworld-heat-object-with-appliance\ndescription: Uses a heating appliance (microwave, stoveburner, oven) to apply heat to a specified object. Use when the task requires warming or cooking an item (e.g., \"heat some egg\", \"warm the mug\") and a heating appliance is available. Takes the object name and appliance name as input and outputs the object in a heated state, ready for placement at the task's target location.\n---\n# Skill: Heat Object with Appliance\n\n## Purpose\nHeat a specified object using a designated kitchen appliance to change its state (e.g., from cold to hot, raw to cooked) as required by a task.\n\n## Core Workflow\nFollow this sequence of actions. Use the bundled `validate_and_plan.py` script to check for common preconditions before starting.\n\n1.  **Navigate & Locate:** Go to the location of the target object.\n2.  **Acquire Object:** Take the object from its current receptacle.\n3.  **Navigate to Appliance:** Go to the specified heating appliance.\n4.  **Prepare Appliance:**\n    *   If the appliance is closed, open it....\n\n## Skill: alfworld-object-heater\nSource: evaluation/skillsbench/skillsets/skills_500/alfworld-object-heater/SKILL.md\n---\nname: alfworld-object-heater\ndescription: Heats a specified object using an available heating appliance (e.g., microwave, stoveburner). Use when you are holding an object that requires heating and need to navigate to and operate the heating appliance. Takes the object and appliance as inputs and results in the object being in a heated state.\n---\n# Instructions\n\nHeat an object you are holding using a compatible heating appliance (microwave or stoveburner).\n\n## Prerequisites\n- The target object must be in your inventory\n- A heating appliance (microwave, stoveburner) must exist in the environment\n\n## Workflow\n1. **Navigate:** `go to {appliance}` (e.g., `go to microwave 1`)\n2. **Check state:** If observation says appliance is closed, execute `open {appliance}` -- verify observation confirms it is now open\n3. **Heat:** `heat {object} with {appliance}` -- verify observation confirms \"You heat the {object}\"\n4. **(Optional) Place:** If the task requires it, navigate to the destination and place the heated object\n\n## Action Format\n- `go to microwave 1` / `go to stovebu..."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to first identify the hot plate to take it. It seems I need to check the countertops again to see if it is present there. \nAction: open countertop 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: It seems I cannot interact with countertop 1. I will try to check a different countertop for the hot plate instead. \nAction: open countertop 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I am unable to open countertop 1 and countertop 2. I will try to check countertop 3 for the hot plate. \nAction: open countertop 3"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "user",
+            "content": "Additional runtime skill support was injected because: runtime_failure:nothing happens.\n\nUse the following skill details only if they directly help recover and reach the shortest path to completion.\n\nSelected skills: alfworld-heat-object-with-appliance, alfworld-object-heater\n\n## Skill: alfworld-heat-object-with-appliance\nSource: evaluation/skillsbench/skillsets/skills_500/alfworld-heat-object-with-appliance/SKILL.md\n---\nname: alfworld-heat-object-with-appliance\ndescription: Uses a heating appliance (microwave, stoveburner, oven) to apply heat to a specified object. Use when the task requires warming or cooking an item (e.g., \"heat some egg\", \"warm the mug\") and a heating appliance is available. Takes the object name and appliance name as input and outputs the object in a heated state, ready for placement at the task's target location.\n---\n# Skill: Heat Object with Appliance\n\n## Purpose\nHeat a specified object using a designated kitchen appliance to change its state (e.g., from cold to hot, raw to cooked) as required by a task.\n\n## Core Workflow\nFollow this sequence of actions. Use the bundled `validate_and_plan.py` script to check for common preconditions before starting.\n\n1.  **Navigate & Locate:** Go to the location of the target object.\n2.  **Acquire Object:** Take the object from its current receptacle.\n3.  **Navigate to Appliance:** Go to the specified heating appliance.\n4.  **Prepare Appliance:**\n    *   If the appliance is closed, open it....\n\n## Skill: alfworld-object-heater\nSource: evaluation/skillsbench/skillsets/skills_500/alfworld-object-heater/SKILL.md\n---\nname: alfworld-object-heater\ndescription: Heats a specified object using an available heating appliance (e.g., microwave, stoveburner). Use when you are holding an object that requires heating and need to navigate to and operate the heating appliance. Takes the object and appliance as inputs and results in the object being in a heated state.\n---\n# Instructions\n\nHeat an object you are holding using a compatible heating appliance (microwave or stoveburner).\n\n## Prerequisites\n- The target object must be in your inventory\n- A heating appliance (microwave, stoveburner) must exist in the environment\n\n## Workflow\n1. **Navigate:** `go to {appliance}` (e.g., `go to microwave 1`)\n2. **Check state:** If observation says appliance is closed, execute `open {appliance}` -- verify observation confirms it is now open\n3. **Heat:** `heat {object} with {appliance}` -- verify observation confirms \"You heat the {object}\"\n4. **(Optional) Place:** If the task requires it, navigate to the destination and place the heated object\n\n## Action Format\n- `go to microwave 1` / `go to stovebu..."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have been unable to interact with any countertops. I will try searching for the hot plate in a different location by checking the cabinets instead. Let me start with cabinet 1. \nAction: open cabinet 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I am unable to open cabinet 1. I will try to check cabinet 2 now, as the hot plate may be stored there. \nAction: open cabinet 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Opening cabinet 1 and cabinet 2 did not yield results. I will check cabinet 3 next for the hot plate. \nAction: open cabinet 3"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have not had success with cabinets 1, 2, and 3. I will continue checking cabinets, as the hot plate should be in one of them. I will now try cabinet 4.\nAction: open cabinet 4"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to keep searching through the cabinets since previous attempts with cabinets 1 to 4 have been unsuccessful. I will attempt to open cabinet 5 next.\nAction: open cabinet 5"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have not been able to open cabinets 1 through 5. I will now check cabinet 6 in hopes of finding the hot plate there. \nAction: open cabinet 6"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Since cabinets 1 through 6 did not work, I will try cabinet 7 next. I need to find the hot plate. \nAction: open cabinet 7"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I will continue checking the cabinets, as I have not found the hot plate yet. I will now attempt to open cabinet 8.\nAction: open cabinet 8"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have been unsuccessful with cabinets 1 through 8. I will try cabinet 9 next in hopes of finding the hot plate. \nAction: open cabinet 9"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have been unable to access cabinets 1 through 9. This is becoming frustrating. I will shift my focus and check the countertop locations again, starting with countertop 1 to verify if the hot plate is actually there. \nAction: open countertop 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have not had any success with countertop 1. I will try countertop 2 next. \nAction: open countertop 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Since I have not succeeded with countertop 1 and countertop 2, I will attempt to open countertop 3 again now. \nAction: open countertop 3"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I am unable to access countertop 1, countertop 2, and countertop 3. I will check the drawers next, starting with drawer 1 to see if the hot plate is inside. \nAction: open drawer 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I wasn't able to open drawer 1. I will move to drawer 2 and see if the hot plate is located there. \nAction: open drawer 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have been unable to open drawer 1 and drawer 2. I'll check drawer 3 now to see if the hot plate is stored there. \nAction: open drawer 3"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Since drawer 1, drawer 2, and drawer 3 were inaccessible, I will attempt to open drawer 4 next. \nAction: open drawer 4"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have not been able to open drawer 1 through drawer 4. I will check drawer 5 next, hoping to find the hot plate there. \nAction: open drawer 5"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Since drawers 1 through 5 have been inaccessible, I will try to open drawer 6 next. \nAction: open drawer 6"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have been unsuccessful with opening drawers 1 through 6. I will check drawer 7 now, as I still need to locate the hot plate. \nAction: open drawer 7"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The previous attempts to open drawers 1 through 7 have all failed. I will now try to open drawer 8 to search for the hot plate. \nAction: open drawer 8"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have been unable to open drawers 1 through 8. I will now check drawer 9 to see if the hot plate is located there. \nAction: open drawer 9"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have tried to open cabinets 1-9, countertops 1-3, and drawers 1-9, all without any success. Since I can't find the hot plate anywhere, I will re-assess the situation. I will now take a step back and see if I can find a heating appliance directly. First, I will go to the microwave. \nAction: go to microwave 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at microwave 1. The microwave 1 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open the microwave before I can use it. I will proceed to open the microwave now. \nAction: open microwave 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the microwave 1. The microwave 1 is open. In it, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The microwave is now open, but it's empty. Since I still need to heat the hot plate to complete my task, I will go back to look for the hot plate's location again. I will head to countertop 1 to search for it once more. \nAction: go to countertop 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at countertop 1. On the countertop 1, you see a butterknife 2, a dishsponge 1, a fork 1, a glassbottle 2, a knife 1, a lettuce 1, a mug 2, a pan 1, and a saltshaker 2."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have arrived at countertop 1, but the hot plate is not among the items present. I will check countertop 2 to see if the hot plate is there. \nAction: go to countertop 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at countertop 2. On the countertop 2, you see a bread 1, a butterknife 3, a creditcard 2, a cup 1, a dishsponge 3, a houseplant 1, a plate 2, a soapbottle 1, a spatula 1, and a tomato 2."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The hot plate is not on countertop 2 either. I will now check countertop 3 once more, as I need to find it to complete my task. \nAction: go to countertop 3"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at countertop 3. On the countertop 3, you see a book 1, a fork 2, a knife 2, a papertowelroll 1, a plate 3, a plate 1, a soapbottle 2, a spatula 2, a spoon 2, a spoon 1, a statue 1, a tomato 1, a vase 2, and a winebottle 1."
+        }
+    ],
+    "relevant_skill_names": [
+        "alfworld-heat-object-with-appliance",
+        "alfworld-object-heater",
+        "alfworld-temperature-regulator",
+        "alfworld-appliance-navigator"
+    ],
+    "retrieval_status": "SKILL_HIT",
+    "retrieval_summary": "### Retrieval Status\n- Retrieval Status: SKILL_HIT\n- Use retrieved skills to narrow the solution space and take the shortest path to verifier pass.\n- Before coding, inspect the task verifier/tests and identify the minimum acceptance requirements.\n- Satisfy only those minimum requirements first.\n- Treat retrieved skills as constraints and reusable implementations, not permission to open extra branches.\n- Use the exact `Source:` path returned below. Do not reconstruct paths from the skill name or scan the whole library if a Source path is already available.\n- Prefer adapting the retrieved skill's scripts/interfaces over writing a broader replacement.\n\n### Retrieved Skills\n- alfworld-heat-object-with-appliance: Uses a heating appliance (microwave, stoveburner, oven) to apply heat to a specified object. Use when the task requires warming or cooking an item (e.g., \"heat some egg\", \"warm the mug\") and a heating appliance is available. Takes the object name and appliance name as input and outputs the object in a heated state, ready for placement at the task's target location. (score=0.4800, rerank=0.4800, seed rank 1)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-heat-object-with-appliance/SKILL.md\n- alfworld-object-heater: Heats a specified object using an available heating appliance (e.g., microwave, stoveburner). Use when you are holding an object that requires heating and need to navigate to and operate the heating appliance. Takes the object and appliance as inputs and results in the object being in a heated state. (score=0.2400, rerank=0.2400, seed rank 2)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-object-heater/SKILL.md\n- alfworld-temperature-regulator: Manages the temperature state of an object by placing it into an appropriate appliance (fridge for cooling, microwave for heating). Use when the task requires modifying an object's temperature property, such as \"cool some bread\" or \"heat some food\". Takes the object identifier, temperature-modifying receptacle, and final target receptacle as inputs, and outputs the object at the target location with its temperature state changed. (score=0.1600, rerank=0.1600, seed rank 3)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-temperature-regulator/SKILL.md\n- alfworld-appliance-navigator: Navigates the agent to a target appliance (microwave, stove, fridge, or sinkbasin) needed for object processing. Use when you are holding an object that needs heating, cooling, or cleaning and must move to the correct appliance station. Identifies the required appliance from the task context and executes the movement action. (score=0.1200, rerank=0.1200, seed rank 4)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-appliance-navigator/SKILL.md\n\n### Query Schema\n- goal: put a hot plate in cabinet alfworld household manipulation embodied task planning heat_and_place navigate take move open close heat cool clean look plate cabinet cabinet required_state=hot count=1 optimize for shortest valid action sequence environment=alfworld object=plate target_receptacle=cabinet device=cabinet alfworld-heat_and_place\n- task_name: put-a-hot-plate-in-cabinet-alfworld-household\n\n### Semantic Seeds\n- alfworld-heat-object-with-appliance (seed weight=0.4800, rank=1)\n- alfworld-object-heater (seed weight=0.2400, rank=2)\n- alfworld-temperature-regulator (seed weight=0.1600, rank=3)\n- alfworld-appliance-navigator (seed weight=0.1200, rank=4)",
+    "retrieval_query": "put a hot plate in cabinet\nalfworld\nhousehold manipulation\nembodied task planning\nheat_and_place\nnavigate\ntake\nmove\nopen\nclose\nheat\ncool\nclean\nlook\nplate\ncabinet\ncabinet\nrequired_state=hot\ncount=1\noptimize for shortest valid action sequence\nenvironment=alfworld\nobject=plate\ntarget_receptacle=cabinet\ndevice=cabinet\nalfworld-heat_and_place",
+    "runtime_skill_events": [
+        {
+            "step": 1,
+            "trigger": "runtime_failure:nothing happens",
+            "query": "put a hot plate in cabinet\nalfworld\nhousehold manipulation\nembodied task planning\nheat_and_place\nnavigate\ntake\nmove\nopen\nclose\nheat\ncool\nclean\nlook\nplate\ncabinet\ncabinet\nrequired_state=hot\ncount=1\noptimize for shortest valid action sequence\nenvironment=alfworld\nobject=plate\ntarget_receptacle=cabinet\ndevice=cabinet\nalfworld-heat_and_place\nrecent_actions=take hot plate from countertop 1\nruntime_observation=Nothing happens.",
+            "skill_names": [
+                "alfworld-heat-object-with-appliance",
+                "alfworld-object-heater"
+            ]
+        },
+        {
+            "step": 4,
+            "trigger": "runtime_failure:nothing happens",
+            "query": "put a hot plate in cabinet\nalfworld\nhousehold manipulation\nembodied task planning\nheat_and_place\nnavigate\ntake\nmove\nopen\nclose\nheat\ncool\nclean\nlook\nplate\ncabinet\ncabinet\nrequired_state=hot\ncount=1\noptimize for shortest valid action sequence\nenvironment=alfworld\nobject=plate\ntarget_receptacle=cabinet\ndevice=cabinet\nalfworld-heat_and_place\nrecent_actions=open countertop 2, open countertop 3\nruntime_observation=Nothing happens.",
+            "skill_names": [
+                "alfworld-heat-object-with-appliance",
+                "alfworld-object-heater"
+            ]
+        }
+    ],
+    "token_usage": {
+        "llm_calls": 30,
+        "prompt_tokens": 105240,
+        "completion_tokens": 1231,
+        "total_tokens": 106471,
+        "last_prompt_tokens": 4566,
+        "last_completion_tokens": 42,
+        "last_total_tokens": 4608,
+        "max_prompt_tokens": 4566,
+        "max_completion_tokens": 83,
+        "max_total_tokens": 4608,
+        "cached_prompt_tokens": 95232,
+        "cache_creation_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "buckets": {
+            "agent": {
+                "llm_calls": 30,
+                "prompt_tokens": 105240,
+                "completion_tokens": 1231,
+                "total_tokens": 106471,
+                "last_prompt_tokens": 4566,
+                "last_completion_tokens": 42,
+                "last_total_tokens": 4608,
+                "max_prompt_tokens": 4566,
+                "max_completion_tokens": 83,
+                "max_total_tokens": 4608,
+                "cached_prompt_tokens": 95232,
+                "cache_creation_input_tokens": 0,
+                "reasoning_tokens": 0
+            },
+            "aux": {
+                "llm_calls": 0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+                "last_prompt_tokens": 0,
+                "last_completion_tokens": 0,
+                "last_total_tokens": 0,
+                "max_prompt_tokens": 0,
+                "max_completion_tokens": 0,
+                "max_total_tokens": 0,
+                "cached_prompt_tokens": 0,
+                "cache_creation_input_tokens": 0,
+                "reasoning_tokens": 0
+            }
+        }
+    },
+    "started_at": "2026-06-14T06:19:44.155368+00:00",
+    "finished_at": "2026-06-14T06:20:51.139338+00:00",
+    "agent_runtime_seconds": 66.984
+}

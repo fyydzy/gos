@@ -1,0 +1,351 @@
+{
+    "query": "put a clean fork in countertop.",
+    "name": "pick_clean_then_place_in_recep-Fork-None-CounterTop-23/trial_T20190908_233922_171295",
+    "task_done": false,
+    "reward": false,
+    "steps": 30,
+    "messages": [
+        {
+            "role": "system",
+            "content": "Interact with a household to solve a task. Imagine you are an intelligent agent in a household environment and your target is to perform actions to complete the task goal. At the beginning of your interactions, you will be given the detailed description of the current environment and your goal to accomplish. \nFor each turn, think briefly and then choose exactly one of these two outputs:\n1. `Thought: ...` followed by `Action: ...` for a normal environment action.\n2. `Thought: ...` followed by `SkillRequest: ...` if you want extra skill help before acting.\n\nUse `SkillRequest` when it directly helps the next step, especially if you are blocked, the action syntax is unclear, the retrieved skill names look unrelated to the current blocker, or 1-2 actions already failed. In GoS mode, prefer `SkillRequest: GOS_RETRIEVE ...` when you need a better-targeted skill search. In vector mode, prefer `SkillRequest: VECTOR_RETRIEVE ...` when you need a better-targeted vector-only search. Use `READ_SKILL` only when you already know which exact skill is worth reading. Do not output both `Action:` and `SkillRequest:` in the same turn.\n\nThe available actions are:\n1. go to {recep}\n2. take {obj} from {recep}\n3. move {obj} to {recep}\n4. open {recep}\n5. close {recep}\n6. use {obj}\n7. clean {obj} with {recep}\n8. heat {obj} with {recep}\n9. cool {obj} with {recep}\nwhere {obj} and {recep} correspond to objects and receptacles.\nAfter your each turn, the environment will give you immediate feedback based on which you plan your next few steps. if the envrionment output \"Nothing happened\", that means the previous action is invalid and you should try more options.\n\nYour response should use one of the following formats:\n\nThought: <your thoughts>\nAction: <your next action>\n\nor\n\nThought: <your thoughts>\nSkillRequest: <your tool-style request>"
+        },
+        {
+            "role": "user",
+            "content": "Tool-style skill access is available in this run.\nUse it when you are blocked, the syntax is unclear, the retrieved skills look mismatched to the current blocker, or 1-2 actions already failed.\nUse skills conditionally, not by default: if the next environment action is already obvious from the current observation, act directly instead of retrieving.\nPrefer retrieval when the exact syntax is unclear, the task needs a multi-step procedure or tool setup, the current shortlist looks mismatched, or 1-2 recent actions failed.\nPrefer READ_SKILL when you already have a promising exact skill name. For measurement, electrical connection, conditional placement, or any unfamiliar procedure, do not guess the syntax twice in a row; retrieve first, then read the single best skill before continuing.\nMirror the current benchmark vocabulary in retrieval queries. Reuse the task's own object, property, tool, room, and container words instead of naming a different environment.\nIn a request turn, output exactly two lines: `Thought: ...` and `SkillRequest: ...`. Do not output an `Action:` line in the same turn.\nAvailable requests:\n- `SkillRequest: VECTOR_RETRIEVE <short focused query>` to run vector-only retrieval again. This uses embedding similarity only, without graph propagation or lexical expansion.\n- `SkillRequest: READ_SKILL <exact skill name>` to read a known skill file. Use this only when you already know the exact skill you want.\nExamples:\n- `Thought: I already have a good shortlist and need the exact instructions from one candidate.`\n  `SkillRequest: READ_SKILL <exact shortlisted skill name>`\n- `Thought: The current shortlist looks noisy. I need a narrower vector retrieval grounded in the current task.`\n  `SkillRequest: VECTOR_RETRIEVE <target object> <property or subgoal> <tool if needed> <room> <destination container>`\n- `Thought: I failed twice and need vector retrieval that mirrors the current blocker instead of guessing again.`\n  `SkillRequest: VECTOR_RETRIEVE <task-specific keywords from the current benchmark only>`\nUse skill requests sparingly, only when they directly help the next action. In vector mode, prefer `VECTOR_RETRIEVE` before guessing again, and `READ_SKILL` only after a specific skill name looks relevant."
+        },
+        {
+            "role": "user",
+            "content": "You are in the middle of a room. Looking quickly around you, you see a cabinet 10, a cabinet 9, a cabinet 8, a cabinet 7, a cabinet 6, a cabinet 5, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a coffeemachine 1, a countertop 1, a diningtable 1, a drawer 2, a drawer 1, a fridge 1, a garbagecan 1, a microwave 1, a sinkbasin 1, a stoveburner 4, a stoveburner 3, a stoveburner 2, a stoveburner 1, and a toaster 1.\nYour task is to: put a clean fork in countertop."
+        },
+        {
+            "role": "user",
+            "content": "Vector-skills retrieval guidance:\n\nRetrieval Status: SKILL_HIT\n\nTop retrieved skills: alfworld-object-transporter, alfworld-object-placer, alfworld-receptacle-finder\n\nRetrieved skill summaries:\n- alfworld-object-transporter: Picks up a target object from its current receptacle and moves it to a specified destination receptacle. Use when you have located an object and need to relocate it to complete a task (e.g., moving a laptop to a desk). Takes the object identifier, source receptacle, and destination receptacle as inputs and outputs the action sequence to take, transport, and place the object.\n- alfworld-object-placer: Places a held object onto or into a target receptacle. Trigger this skill when the agent is carrying an object and needs to deposit it at a specific location to complete a task, such as installing an item on a holder or storing it in a container. It takes the object and destination receptacle as inputs, performing a 'put' action to finalize the object's positioning according to the task goal.\n- alfworld-receptacle-finder: Searches for a suitable empty or appropriately occupied receptacle (like a shelf or table) to place an object. Use when you are holding an object that needs to be stored or placed and must find a receptacle that meets the placement criteria. Examines candidate receptacles by navigating to and inspecting each one until a suitable location is found.\n\nUse retrieval only as weak high-level guidance. Prioritize the shortest path from current observation to task completion.\n\nDo not follow a rigid room-wide search checklist if the current observation already reveals the target object or target receptacle.\n\nIf the environment feedback or reward indicates the task is complete, stop issuing new actions immediately.\n\nFor ALFWorld action syntax: first navigate to the destination receptacle, then use the exact action form 'move {obj} to {recep}'.\n\nDo not use 'use {obj}' unless the task explicitly requires turning on, heating, cooling, or cleaning something.\n\nIf the current retrieved skills look mismatched to the blocker, or 1-2 actions already failed, issue `SkillRequest: VECTOR_RETRIEVE <short focused query>`. After vector retrieval surfaces a plausible exact skill name, prefer `READ_SKILL` for that single candidate before another uncertain action."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to find a clean fork first before I can move it to the countertop. Since I haven't seen one yet, I will try to locate it using the drawer or cabinets which might contain utensils. \nSkillRequest: VECTOR_RETRIEVE fork find drawer cabinets"
+        },
+        {
+            "role": "user",
+            "content": "Skill request fulfilled: VECTOR_RETRIEVE fork find drawer cabinets\nQuery: fork find drawer cabinets\nShortlisted vector candidates:\n- alfworld-storage-explorer: Systematically explores storage receptacles (drawers, cabinets, shelves) to find an appropriate placement location for an object. Use when the agent needs to store an item but the exact target receptacle is unknown or ambiguous. Opens, inspects, and closes candidate receptacles to assess suitability, then places the object in the best match.\n  Source: /home/linfy/graph-of-skills/data/skillsets/skills_500/alfworld-storage-explorer/SKILL.md\n- alfworld-tool-locator: Searches for a specified tool or device (e.g., a desklamp, knife, or sponge) within the ALFWorld environment by checking relevant surfaces. Use when you need a tool to interact with another object as part of a task but the tool is not in your inventory or immediate vicinity. Takes a tool name as implicit input and navigates to likely storage spots (sidetables, shelves, countertops) until the tool is found.\n  Source: /home/linfy/graph-of-skills/data/skillsets/skills_500/alfworld-tool-locator/SKILL.md\nDo not assume these summaries are enough to execute correctly.\nIf one candidate looks directly relevant to the current blocker, issue `SkillRequest: READ_SKILL <exact skill name>` before trying another uncertain action."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The \"alfworld-tool-locator\" skill seems relevant for my goal to find a clean fork since it's specifically designed to search for tools or utensils in the environment. I'll read this skill for better guidance on how to proceed.\nSkillRequest: READ_SKILL alfworld-tool-locator"
+        },
+        {
+            "role": "user",
+            "content": "Skill request fulfilled: READ_SKILL alfworld-tool-locator\n\nUse this only if it directly improves the next action.\n\nSelected skills: alfworld-tool-locator\n\n=== Skill: alfworld-tool-locator ===\n\n[File: SKILL.md]\n---\nname: alfworld-tool-locator\ndescription: Searches for a specified tool or device (e.g., a desklamp, knife, or sponge) within the ALFWorld environment by checking relevant surfaces. Use when you need a tool to interact with another object as part of a task but the tool is not in your inventory or immediate vicinity. Takes a tool name as implicit input and navigates to likely storage spots (sidetables, shelves, countertops) until the tool is found.\n---\n# Instructions\n\nLocate a specified tool or device by systematically checking receptacles where it is likely stored.\n\n## Workflow\n1. **Prioritize search locations** based on tool type:\n   - Small tools/electronics (desklamp, remotecontrol): `sidetable`, `desk`, `drawer`, `shelf`\n   - Kitchen tools (knife, spatula): `countertop`, `cabinet`, `drawer`\n   - Cleaning tools (sponge, spraybottle): `shelf`, `cabinet`, `countertop`\n   - Default: check all visible receptacles in order\n2. **Navigate** to each prioritized receptacle: `go to {receptacle}`\n3. **Inspect** the observation for the target tool name\n4. **If found:** Stop searching. Proceed to use the tool for the main task\n5. *..."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The skill provides clear guidance on how to search for the fork effectively. I should navigate to each storage receptacle systematically, starting with the drawers and cabinets as they are likely to contain utensils. I will begin with drawer 1.\nAction: go to drawer 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at drawer 1. On the drawer 1, you see a peppershaker 2."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The peppershaker is not what I'm looking for. I should check the next storage receptacle for the fork. I will go to drawer 2 next as it is another potential location for utensils. \nAction: go to drawer 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at drawer 2. The drawer 2 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open drawer 2 to check for the fork inside. Since it's closed, I will proceed to open it and see if the fork is there. \nAction: open drawer 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the drawer 2. The drawer 2 is open. In it, you see a pencil 3, and a saltshaker 2."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The contents of drawer 2 do not include a fork either. I'll proceed to check another likely location for the fork. Next, I will go to cabinet 1 since it might contain utensils.\nAction: go to cabinet 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 1. The cabinet 1 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 1 to check for the fork inside. Since it's closed, I will open it to see if the fork is there. \nAction: open cabinet 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 1. The cabinet 1 is open. In it, you see a dishsponge 1."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The dishsponge is not the fork I'm looking for. I'll check the next cabinet for the fork. I'll now go to cabinet 2 to see if it's stored there. \nAction: go to cabinet 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 2. The cabinet 2 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 2 to look for the fork inside. Since it is closed, I will proceed to open it now. \nAction: open cabinet 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 2. The cabinet 2 is open. In it, you see a mug 1."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The contents of cabinet 2 do not include the fork. I will continue my search for the fork by going to cabinet 3 next. \nAction: go to cabinet 3"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 3. The cabinet 3 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 3 to check for the fork inside. Since it's closed, I will open it to see if the fork is there. \nAction: open cabinet 3"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 3. The cabinet 3 is open. In it, you see a saltshaker 1."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The saltshaker is not a fork. I need to keep searching, so I'll go to cabinet 4 next and check there for the fork. \nAction: go to cabinet 4"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 4. The cabinet 4 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 4 to search for the fork inside. I will go ahead and open it now. \nAction: open cabinet 4"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 4. The cabinet 4 is open. In it, you see a bowl 3."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The bowl is not what I'm looking for. I will continue my search. The next location to check is cabinet 5. \nAction: go to cabinet 5"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 5. The cabinet 5 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 5 to check for the fork inside. Since it's closed, I will proceed to open it. \nAction: open cabinet 5"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 5. The cabinet 5 is open. In it, you see a dishsponge 2, a glassbottle 1, and a winebottle 2."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: None of the items in cabinet 5 are the fork I am searching for. I will now check cabinet 6 next to continue the search. \nAction: go to cabinet 6"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 6. The cabinet 6 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 6 to search for the fork inside. Since it's closed, I will open it now. \nAction: open cabinet 6"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 6. The cabinet 6 is open. In it, you see a mug 2."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The mug is also not the fork. I need to keep looking. My next step will be to go to cabinet 7. \nAction: go to cabinet 7"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 7. On the cabinet 7, you see a winebottle 3."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I see a wine bottle, but no fork. Since the fork is not visible here either, I will go ahead and check cabinet 8 next. \nAction: go to cabinet 8"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 8. On the cabinet 8, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: There is nothing in cabinet 8. I need to continue my search for the fork. Next, I will go to cabinet 9. \nAction: go to cabinet 9"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 9. On the cabinet 9, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: There is also nothing in cabinet 9. I will continue my search for the fork by checking cabinet 10 next. \nAction: go to cabinet 10"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 10. On the cabinet 10, you see a cup 1, and a saltshaker 3."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The cup and the saltshaker are not what I'm looking for. Since I still haven't found the fork, I will check the drawer 1 and drawer 2 again for the fork, starting with drawer 1. \nAction: go to drawer 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at drawer 1. On the drawer 1, you see a peppershaker 2."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have already checked drawer 1 and found the peppershaker. I will now check drawer 2 again to see if the fork was overlooked or if it is present now. \nAction: go to drawer 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at drawer 2. The drawer 2 is open. In it, you see a pencil 3, and a saltshaker 2."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have already checked drawer 2 and found a pencil and a saltshaker. The fork is still not found. I will go back to the previous receptacles again for updates. I will check cabinet 1 once more.\nAction: go to cabinet 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 1. The cabinet 1 is open. In it, you see a dishsponge 1."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I have already checked cabinet 1 and confirmed that the only item is the dishsponge. I have also checked cabinets 2 through 10 and all the drawers without finding the fork. I will now check the countertop for the fork, as it may have been left there. \nAction: go to countertop 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at countertop 1. On the countertop 1, you see a bread 1, a knife 2, a lettuce 1, and a peppershaker 3."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The contents on the countertop do not include a fork either. I have checked most of the storage locations and still haven't found the fork. I will now use the \"alfworld-receptacle-finder\" skill to determine if there are any receptacles I might have missed or to get a different search strategy. \nSkillRequest: READ_SKILL alfworld-receptacle-finder"
+        },
+        {
+            "role": "user",
+            "content": "Skill request fulfilled: READ_SKILL alfworld-receptacle-finder\n\nUse this only if it directly improves the next action.\n\nSelected skills: alfworld-receptacle-finder\n\n=== Skill: alfworld-receptacle-finder ===\n\n[File: SKILL.md]\n---\nname: alfworld-receptacle-finder\ndescription: Searches for a suitable empty or appropriately occupied receptacle (like a shelf or table) to place an object. Use when you are holding an object that needs to be stored or placed and must find a receptacle that meets the placement criteria. Examines candidate receptacles by navigating to and inspecting each one until a suitable location is found.\n---\n# Instructions\n\n**Trigger:** Use this skill when you have an object in your inventory that needs to be stored or placed, and you must find a suitable receptacle (e.g., shelf, table, basin).\n\n## Core Procedure\n1.  **Identify Target Object:** Confirm the object you are holding and its state (e.g., `soapbar 1`, `clean`).\n2.  **Survey Environment:** Use `go to {recep}` actions to navigate to and visually inspect candidate receptacles from the observation list.\n3.  **Evaluate Candidates:** For each receptacle, assess its suitability:\n    *   **Primary Goal:** Find an **empty receptacle**.\n    *   **Fallback:** If no empty receptacle is available, identify one that can logically accommodate the object without conflict (e.g., a sh..."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The receptacle-finder skill emphasizes finding suitable receptacles, but my goal is to locate the fork rather than place an object. It seems I still haven’t explored the sink basin or the fridge. I will go to the sink basin next since it may have utensils as well. \nAction: go to sinkbasin 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at sinkbasin 1. On the sinkbasin 1, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: There's nothing in the sink basin. The last place I haven't explored is the fridge. I will go there next to see if the fork is contained there. \nAction: go to fridge 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at fridge 1. The fridge 1 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open the fridge to check for the fork inside. Since it's closed, I will go ahead and open it. \nAction: open fridge 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the fridge 1. The fridge 1 is open. In it, you see a apple 3, a bread 2, a egg 1, a lettuce 2, a potato 3, a potato 2, a tomato 3, and a tomato 2."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The fridge contains various food items, but not the fork I am looking for. I have searched all the cabinets, drawers, and key receptacles for the fork without success. I will need to check the remaining receptacles including the toaster as it might contain utensils. \nAction: go to toaster 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at toaster 1. On the toaster 1, you see nothing."
+        }
+    ],
+    "relevant_skill_names": [
+        "alfworld-object-transporter",
+        "alfworld-object-placer",
+        "alfworld-receptacle-finder",
+        "alfworld-receptacle-preparer"
+    ],
+    "retrieval_status": "SKILL_HIT",
+    "retrieval_summary": "### Retrieval Status\n- Retrieval Status: SKILL_HIT\n- Use retrieved skills to narrow the solution space and take the shortest path to verifier pass.\n- Before coding, inspect the task verifier/tests and identify the minimum acceptance requirements.\n- Satisfy only those minimum requirements first.\n- Treat retrieved skills as constraints and reusable implementations, not permission to open extra branches.\n- Use the exact `Source:` path returned below. Do not reconstruct paths from the skill name or scan the whole library if a Source path is already available.\n- Prefer adapting the retrieved skill's scripts/interfaces over writing a broader replacement.\n\n### Retrieved Skills\n- alfworld-object-transporter: Picks up a target object from its current receptacle and moves it to a specified destination receptacle. Use when you have located an object and need to relocate it to complete a task (e.g., moving a laptop to a desk). Takes the object identifier, source receptacle, and destination receptacle as inputs and outputs the action sequence to take, transport, and place the object. (score=0.4800, rerank=0.4800, seed rank 1)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-object-transporter/SKILL.md\n- alfworld-object-placer: Places a held object onto or into a target receptacle. Trigger this skill when the agent is carrying an object and needs to deposit it at a specific location to complete a task, such as installing an item on a holder or storing it in a container. It takes the object and destination receptacle as inputs, performing a 'put' action to finalize the object's positioning according to the task goal. (score=0.2400, rerank=0.2400, seed rank 2)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-object-placer/SKILL.md\n- alfworld-receptacle-finder: Searches for a suitable empty or appropriately occupied receptacle (like a shelf or table) to place an object. Use when you are holding an object that needs to be stored or placed and must find a receptacle that meets the placement criteria. Examines candidate receptacles by navigating to and inspecting each one until a suitable location is found. (score=0.1600, rerank=0.1600, seed rank 3)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-receptacle-finder/SKILL.md\n- alfworld-receptacle-preparer: This skill verifies and prepares a target receptacle for receiving an object. It is triggered before placing an item into a receptacle (e.g., a garbage can) to ensure the receptacle is accessible and suitable. The skill involves navigating to the receptacle, observing its state (e.g., open/closed, occupied), and performing any necessary preparatory actions like opening it, resulting in a ready-to-use target location. (score=0.1200, rerank=0.1200, seed rank 4)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-receptacle-preparer/SKILL.md\n\n### Query Schema\n- goal: put a clean fork in countertop alfworld household manipulation embodied task planning clean_and_place navigate take move open close heat cool clean look fork countertop countertop required_state=clean count=1 optimize for shortest valid action sequence environment=alfworld object=fork target_receptacle=countertop device=countertop alfworld-clean_and_place\n- task_name: put-a-clean-fork-in-countertop-alfworld-household\n\n### Semantic Seeds\n- alfworld-object-transporter (seed weight=0.4800, rank=1)\n- alfworld-object-placer (seed weight=0.2400, rank=2)\n- alfworld-receptacle-finder (seed weight=0.1600, rank=3)\n- alfworld-receptacle-preparer (seed weight=0.1200, rank=4)",
+    "retrieval_query": "put a clean fork in countertop\nalfworld\nhousehold manipulation\nembodied task planning\nclean_and_place\nnavigate\ntake\nmove\nopen\nclose\nheat\ncool\nclean\nlook\nfork\ncountertop\ncountertop\nrequired_state=clean\ncount=1\noptimize for shortest valid action sequence\nenvironment=alfworld\nobject=fork\ntarget_receptacle=countertop\ndevice=countertop\nalfworld-clean_and_place",
+    "runtime_skill_events": [
+        {
+            "step": 1,
+            "trigger": "agent_request:vector_retrieve",
+            "query": "fork find drawer cabinets",
+            "skill_names": [
+                "alfworld-storage-explorer",
+                "alfworld-tool-locator"
+            ]
+        },
+        {
+            "step": 2,
+            "trigger": "agent_request:read_skill",
+            "query": "alfworld-tool-locator",
+            "skill_names": [
+                "alfworld-tool-locator"
+            ]
+        },
+        {
+            "step": 26,
+            "trigger": "agent_request:read_skill",
+            "query": "alfworld-receptacle-finder",
+            "skill_names": [
+                "alfworld-receptacle-finder"
+            ]
+        }
+    ],
+    "token_usage": {
+        "llm_calls": 30,
+        "prompt_tokens": 97434,
+        "completion_tokens": 1369,
+        "total_tokens": 98803,
+        "last_prompt_tokens": 4700,
+        "last_completion_tokens": 63,
+        "last_total_tokens": 4763,
+        "max_prompt_tokens": 4700,
+        "max_completion_tokens": 78,
+        "max_total_tokens": 4763,
+        "cached_prompt_tokens": 91904,
+        "cache_creation_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "buckets": {
+            "agent": {
+                "llm_calls": 30,
+                "prompt_tokens": 97434,
+                "completion_tokens": 1369,
+                "total_tokens": 98803,
+                "last_prompt_tokens": 4700,
+                "last_completion_tokens": 63,
+                "last_total_tokens": 4763,
+                "max_prompt_tokens": 4700,
+                "max_completion_tokens": 78,
+                "max_total_tokens": 4763,
+                "cached_prompt_tokens": 91904,
+                "cache_creation_input_tokens": 0,
+                "reasoning_tokens": 0
+            },
+            "aux": {
+                "llm_calls": 0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+                "last_prompt_tokens": 0,
+                "last_completion_tokens": 0,
+                "last_total_tokens": 0,
+                "max_prompt_tokens": 0,
+                "max_completion_tokens": 0,
+                "max_total_tokens": 0,
+                "cached_prompt_tokens": 0,
+                "cache_creation_input_tokens": 0,
+                "reasoning_tokens": 0
+            }
+        }
+    },
+    "started_at": "2026-06-14T09:21:19.642100+00:00",
+    "finished_at": "2026-06-14T09:22:20.149758+00:00",
+    "agent_runtime_seconds": 60.508
+}

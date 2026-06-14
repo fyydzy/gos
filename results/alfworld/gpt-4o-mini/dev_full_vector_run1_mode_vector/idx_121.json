@@ -1,0 +1,360 @@
+{
+    "query": "put a hot potato in fridge.",
+    "name": "pick_heat_then_place_in_recep-Potato-None-Fridge-12/trial_T20190908_014451_271080",
+    "task_done": false,
+    "reward": false,
+    "steps": 30,
+    "messages": [
+        {
+            "role": "system",
+            "content": "Interact with a household to solve a task. Imagine you are an intelligent agent in a household environment and your target is to perform actions to complete the task goal. At the beginning of your interactions, you will be given the detailed description of the current environment and your goal to accomplish. \nFor each turn, think briefly and then choose exactly one of these two outputs:\n1. `Thought: ...` followed by `Action: ...` for a normal environment action.\n2. `Thought: ...` followed by `SkillRequest: ...` if you want extra skill help before acting.\n\nUse `SkillRequest` when it directly helps the next step, especially if you are blocked, the action syntax is unclear, the retrieved skill names look unrelated to the current blocker, or 1-2 actions already failed. In GoS mode, prefer `SkillRequest: GOS_RETRIEVE ...` when you need a better-targeted skill search. In vector mode, prefer `SkillRequest: VECTOR_RETRIEVE ...` when you need a better-targeted vector-only search. Use `READ_SKILL` only when you already know which exact skill is worth reading. Do not output both `Action:` and `SkillRequest:` in the same turn.\n\nThe available actions are:\n1. go to {recep}\n2. take {obj} from {recep}\n3. move {obj} to {recep}\n4. open {recep}\n5. close {recep}\n6. use {obj}\n7. clean {obj} with {recep}\n8. heat {obj} with {recep}\n9. cool {obj} with {recep}\nwhere {obj} and {recep} correspond to objects and receptacles.\nAfter your each turn, the environment will give you immediate feedback based on which you plan your next few steps. if the envrionment output \"Nothing happened\", that means the previous action is invalid and you should try more options.\n\nYour response should use one of the following formats:\n\nThought: <your thoughts>\nAction: <your next action>\n\nor\n\nThought: <your thoughts>\nSkillRequest: <your tool-style request>"
+        },
+        {
+            "role": "user",
+            "content": "Tool-style skill access is available in this run.\nUse it when you are blocked, the syntax is unclear, the retrieved skills look mismatched to the current blocker, or 1-2 actions already failed.\nUse skills conditionally, not by default: if the next environment action is already obvious from the current observation, act directly instead of retrieving.\nPrefer retrieval when the exact syntax is unclear, the task needs a multi-step procedure or tool setup, the current shortlist looks mismatched, or 1-2 recent actions failed.\nPrefer READ_SKILL when you already have a promising exact skill name. For measurement, electrical connection, conditional placement, or any unfamiliar procedure, do not guess the syntax twice in a row; retrieve first, then read the single best skill before continuing.\nMirror the current benchmark vocabulary in retrieval queries. Reuse the task's own object, property, tool, room, and container words instead of naming a different environment.\nIn a request turn, output exactly two lines: `Thought: ...` and `SkillRequest: ...`. Do not output an `Action:` line in the same turn.\nAvailable requests:\n- `SkillRequest: VECTOR_RETRIEVE <short focused query>` to run vector-only retrieval again. This uses embedding similarity only, without graph propagation or lexical expansion.\n- `SkillRequest: READ_SKILL <exact skill name>` to read a known skill file. Use this only when you already know the exact skill you want.\nExamples:\n- `Thought: I already have a good shortlist and need the exact instructions from one candidate.`\n  `SkillRequest: READ_SKILL <exact shortlisted skill name>`\n- `Thought: The current shortlist looks noisy. I need a narrower vector retrieval grounded in the current task.`\n  `SkillRequest: VECTOR_RETRIEVE <target object> <property or subgoal> <tool if needed> <room> <destination container>`\n- `Thought: I failed twice and need vector retrieval that mirrors the current blocker instead of guessing again.`\n  `SkillRequest: VECTOR_RETRIEVE <task-specific keywords from the current benchmark only>`\nUse skill requests sparingly, only when they directly help the next action. In vector mode, prefer `VECTOR_RETRIEVE` before guessing again, and `READ_SKILL` only after a specific skill name looks relevant."
+        },
+        {
+            "role": "user",
+            "content": "You are in the middle of a room. Looking quickly around you, you see a cabinet 19, a cabinet 18, a cabinet 17, a cabinet 16, a cabinet 15, a cabinet 14, a cabinet 13, a cabinet 12, a cabinet 11, a cabinet 10, a cabinet 9, a cabinet 8, a cabinet 7, a cabinet 6, a cabinet 5, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a coffeemachine 1, a countertop 3, a countertop 2, a countertop 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a fridge 1, a garbagecan 1, a microwave 1, a sinkbasin 1, a stoveburner 4, a stoveburner 3, a stoveburner 2, a stoveburner 1, and a toaster 1.\nYour task is to: put a hot potato in fridge."
+        },
+        {
+            "role": "user",
+            "content": "Vector-skills retrieval guidance:\n\nRetrieval Status: SKILL_HIT\n\nTop retrieved skills: alfworld-temperature-regulator, alfworld-heat-object-with-appliance, alfworld-object-heater\n\nRetrieved skill summaries:\n- alfworld-temperature-regulator: Manages the temperature state of an object by placing it into an appropriate appliance (fridge for cooling, microwave for heating). Use when the task requires modifying an object's temperature property, such as \"cool some bread\" or \"heat some food\". Takes the object identifier, temperature-modifying receptacle, and final target receptacle as inputs, and outputs the object at the target location with its temperature state changed.\n- alfworld-heat-object-with-appliance: Uses a heating appliance (microwave, stoveburner, oven) to apply heat to a specified object. Use when the task requires warming or cooking an item (e.g., \"heat some egg\", \"warm the mug\") and a heating appliance is available. Takes the object name and appliance name as input and outputs the object in a heated state, ready for placement at the task's target location.\n- alfworld-object-heater: Heats a specified object using an available heating appliance (e.g., microwave, stoveburner). Use when you are holding an object that requires heating and need to navigate to and operate the heating appliance. Takes the object and appliance as inputs and results in the object being in a heated state.\n\nUse retrieval only as weak high-level guidance. Prioritize the shortest path from current observation to task completion.\n\nDo not follow a rigid room-wide search checklist if the current observation already reveals the target object or target receptacle.\n\nIf the environment feedback or reward indicates the task is complete, stop issuing new actions immediately.\n\nFor ALFWorld action syntax: first navigate to the destination receptacle, then use the exact action form 'move {obj} to {recep}'.\n\nDo not use 'use {obj}' unless the task explicitly requires turning on, heating, cooling, or cleaning something.\n\nIf the current retrieved skills look mismatched to the blocker, or 1-2 actions already failed, issue `SkillRequest: VECTOR_RETRIEVE <short focused query>`. After vector retrieval surfaces a plausible exact skill name, prefer `READ_SKILL` for that single candidate before another uncertain action."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to cool a hot potato by placing it in the fridge. First, I should locate the hot potato and then move it to the fridge. \nSkillRequest: VECTOR_RETRIEVE hot potato cooling fridge"
+        },
+        {
+            "role": "user",
+            "content": "Skill request fulfilled: VECTOR_RETRIEVE hot potato cooling fridge\nQuery: hot potato cooling fridge\nShortlisted vector candidates:\n- alfworld-object-cooler: Cools a held object using an appropriate cooling appliance such as a fridge or freezer. Use when the task requires reducing the temperature of an object (e.g., \"cool some pot\", \"chill the mug\") and the agent is already holding the object. Performs the ALFWorld `cool` action and outputs the cooled object ready for subsequent placement or serving steps.\n  Source: /home/linfy/graph-of-skills/data/skillsets/skills_500/alfworld-object-cooler/SKILL.md\n- alfworld-temperature-regulator: Manages the temperature state of an object by placing it into an appropriate appliance (fridge for cooling, microwave for heating). Use when the task requires modifying an object's temperature property, such as \"cool some bread\" or \"heat some food\". Takes the object identifier, temperature-modifying receptacle, and final target receptacle as inputs, and outputs the object at the target location with its temperature state changed.\n  Source: /home/linfy/graph-of-skills/data/skillsets/skills_500/alfworld-temperature-regulator/SKILL.md\nDo not assume these summaries are enough to execute correctly.\nIf one candidate looks directly relevant to the current blocker, issue `SkillRequest: READ_SKILL <exact skill name>` before trying another uncertain action."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The retrieved skills indicate that I can either use the alfworld-object-cooler to cool the hot potato directly or manage its temperature using the alfworld-temperature-regulator. Since I need to place the hot potato in the fridge, the temperature regulator skill seems more relevant to my task. \nSkillRequest: READ_SKILL alfworld-temperature-regulator"
+        },
+        {
+            "role": "user",
+            "content": "Skill request fulfilled: READ_SKILL alfworld-temperature-regulator\n\nUse this only if it directly improves the next action.\n\nSelected skills: alfworld-temperature-regulator\n\n=== Skill: alfworld-temperature-regulator ===\n\n[File: SKILL.md]\n---\nname: alfworld-temperature-regulator\ndescription: Manages the temperature state of an object by placing it into an appropriate appliance (fridge for cooling, microwave for heating). Use when the task requires modifying an object's temperature property, such as \"cool some bread\" or \"heat some food\". Takes the object identifier, temperature-modifying receptacle, and final target receptacle as inputs, and outputs the object at the target location with its temperature state changed.\n---\n# Instructions\nThis skill executes a sequence to change an object's temperature by placing it in a specific receptacle (e.g., fridge for cooling, microwave for heating) and then relocating it to a final target location.\n\n## 1. Input Validation & Planning\n*   **Inputs Required:** The `object` identifier (e.g., `bread 1`) and the `temperature_receptacle` identifier (e.g., `fridge 1` for cooling, `microwave 1` for heating). The final `target_receptacle` (e.g., `diningtable 1`) is also required.\n*   **Verify** the provided object and receptacles exist in the agent's current observation. If not, the agent must first navigate to locate the..."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to gather the necessary identifiers for the hot potato and the fridge before proceeding with the cooling action. I should first check if the hot potato is available in the environment. Since it isn't explicitly mentioned in the current observation, I should look around for it. Once I identify it, I can then place it in the fridge.\nSkillRequest: VECTOR_RETRIEVE hot potato location"
+        },
+        {
+            "role": "user",
+            "content": "Skill request fulfilled: VECTOR_RETRIEVE hot potato location\nQuery: hot potato location\nShortlisted vector candidates:\n- alfworld-locate-target-object: Navigates to a suspected location and identifies a target object. Use when your goal requires finding a specific object (e.g., \"potato\", \"plate\") and its location is not immediately known. Moves to a relevant receptacle (like a fridge or cabinet), checks its contents, and outputs the object's location or confirms its absence.\n  Source: /home/linfy/graph-of-skills/data/skillsets/skills_500/alfworld-locate-target-object/SKILL.md\n- alfworld-heat-object-with-appliance: Uses a heating appliance (microwave, stoveburner, oven) to apply heat to a specified object. Use when the task requires warming or cooking an item (e.g., \"heat some egg\", \"warm the mug\") and a heating appliance is available. Takes the object name and appliance name as input and outputs the object in a heated state, ready for placement at the task's target location.\n  Source: /home/linfy/graph-of-skills/data/skillsets/skills_500/alfworld-heat-object-with-appliance/SKILL.md\nDo not assume these summaries are enough to execute correctly.\nIf one candidate looks directly relevant to the current blocker, issue `SkillRequest: READ_SKILL <exact skill name>` before trying another uncertain action."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The relevant skill to locate the hot potato is alfworld-locate-target-object, which will allow me to search for the hot potato in the environment. This is essential before I can proceed with cooling it in the fridge. \nSkillRequest: READ_SKILL alfworld-locate-target-object"
+        },
+        {
+            "role": "user",
+            "content": "Skill request fulfilled: READ_SKILL alfworld-locate-target-object\n\nUse this only if it directly improves the next action.\n\nSelected skills: alfworld-locate-target-object\n\n=== Skill: alfworld-locate-target-object ===\n\n[File: SKILL.md]\n---\nname: alfworld-locate-target-object\ndescription: Navigates to a suspected location and identifies a target object. Use when your goal requires finding a specific object (e.g., \"potato\", \"plate\") and its location is not immediately known. Moves to a relevant receptacle (like a fridge or cabinet), checks its contents, and outputs the object's location or confirms its absence.\n---\n# Skill: Locate Target Object\n\n## Purpose\nUse this skill when your goal requires a specific object and you need to find it. The skill directs you to a likely receptacle, inspects it, and confirms if the target is present.\n\n## Core Workflow\n1.  **Identify Target & Suspected Location:** Determine the object you need and the most logical place to find it (e.g., food in the `fridge`, utensils in a `drawer`).\n2.  **Navigate:** Go to the suspected receptacle.\n3.  **Inspect:** If the receptacle is closed, open it.\n4.  **Locate:** Visually scan the contents for the target object.\n5.  **Report:** Output the object's location if found, or note its absence.\n\n## Instructions\nFollow this sequence of actions and reasoning.\n\n**Thought:** I need to find a..."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: To find the hot potato, I should navigate to a likely location such as a cabinet or countertop where food items might be stored. I will choose one of the cabinets to inspect, as it is a common place for food items. \nAction: go to cabinet 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 1. The cabinet 1 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 1 to check its contents and locate the hot potato. \nAction: open cabinet 1"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 1. The cabinet 1 is open. In it, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The hot potato is not in cabinet 1. I should check another potential location, so I will go to another cabinet. It could be in cabinet 2. \nAction: go to cabinet 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 2. The cabinet 2 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 2 to see if the hot potato is inside. \nAction: open cabinet 2"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 2. The cabinet 2 is open. In it, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The hot potato is not in cabinet 2 either. I'll try checking cabinet 3 next, as it might be stored there. \nAction: go to cabinet 3"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 3. The cabinet 3 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 3 to check for the hot potato. \nAction: open cabinet 3"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 3. The cabinet 3 is open. In it, you see a saltshaker 1."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The hot potato is not in cabinet 3, only a saltshaker is present. I will now check cabinet 4 to continue my search. \nAction: go to cabinet 4"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 4. On the cabinet 4, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Since cabinet 4 is empty, I should move on to another location. I will now check cabinet 5. \nAction: go to cabinet 5"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 5. On the cabinet 5, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The search in cabinet 5 was also unsuccessful. I will now move on to cabinet 6 to continue looking for the hot potato. \nAction: go to cabinet 6"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 6. The cabinet 6 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 6 to check if the hot potato is inside. \nAction: open cabinet 6"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 6. The cabinet 6 is open. In it, you see a bowl 1, and a pan 1."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: There is no hot potato in cabinet 6 either; only a bowl and a pan are present. I will check cabinet 7 next. \nAction: go to cabinet 7"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 7. The cabinet 7 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 7 to inspect its contents for the hot potato. \nAction: open cabinet 7"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 7. The cabinet 7 is open. In it, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Cabinet 7 is also empty. I will continue my search by checking cabinet 8 next. \nAction: go to cabinet 8"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 8. The cabinet 8 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 8 to see if the hot potato is stored inside. \nAction: open cabinet 8"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 8. The cabinet 8 is open. In it, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Cabinet 8 is empty as well. I will move on to check cabinet 9 for the hot potato. \nAction: go to cabinet 9"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 9. The cabinet 9 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 9 to check for the hot potato inside. \nAction: open cabinet 9"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 9. The cabinet 9 is open. In it, you see a plate 1."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: The hot potato is not in cabinet 9, only a plate is present. I will check cabinet 10 next. \nAction: go to cabinet 10"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 10. The cabinet 10 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 10 to see if the hot potato is inside. \nAction: open cabinet 10"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 10. The cabinet 10 is open. In it, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Cabinet 10 is empty. I will now proceed to check cabinet 11 in search of the hot potato. \nAction: go to cabinet 11"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 11. The cabinet 11 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 11 to check its contents for the hot potato. \nAction: open cabinet 11"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 11. The cabinet 11 is open. In it, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Cabinet 11 is also empty. I will now continue my search by checking cabinet 12 next. \nAction: go to cabinet 12"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 12. The cabinet 12 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 12 to see if the hot potato is inside. \nAction: open cabinet 12"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 12. The cabinet 12 is open. In it, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Cabinet 12 is empty as well. I should continue my search in cabinet 13 next. \nAction: go to cabinet 13"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You arrive at cabinet 13. The cabinet 13 is closed."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: I need to open cabinet 13 to check for the hot potato. \nAction: open cabinet 13"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 13. The cabinet 13 is open. In it, you see nothing."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: Cabinet 13 is also empty. I will now check cabinet 14 for the hot potato. \nAction: go to cabinet 14"
+        },
+        {
+            "role": "user",
+            "content": "Observation: Nothing happens."
+        },
+        {
+            "role": "assistant",
+            "content": "Thought: It seems my attempt to go to cabinet 14 was unsuccessful, possibly due to an error in navigation. I will try to open cabinet 14 directly since I need to check its contents. \nAction: open cabinet 14"
+        },
+        {
+            "role": "user",
+            "content": "Observation: You open the cabinet 14. The cabinet 14 is open. In it, you see nothing."
+        }
+    ],
+    "relevant_skill_names": [
+        "alfworld-temperature-regulator",
+        "alfworld-heat-object-with-appliance",
+        "alfworld-object-heater",
+        "alfworld-object-cooler"
+    ],
+    "retrieval_status": "SKILL_HIT",
+    "retrieval_summary": "### Retrieval Status\n- Retrieval Status: SKILL_HIT\n- Use retrieved skills to narrow the solution space and take the shortest path to verifier pass.\n- Before coding, inspect the task verifier/tests and identify the minimum acceptance requirements.\n- Satisfy only those minimum requirements first.\n- Treat retrieved skills as constraints and reusable implementations, not permission to open extra branches.\n- Use the exact `Source:` path returned below. Do not reconstruct paths from the skill name or scan the whole library if a Source path is already available.\n- Prefer adapting the retrieved skill's scripts/interfaces over writing a broader replacement.\n\n### Retrieved Skills\n- alfworld-temperature-regulator: Manages the temperature state of an object by placing it into an appropriate appliance (fridge for cooling, microwave for heating). Use when the task requires modifying an object's temperature property, such as \"cool some bread\" or \"heat some food\". Takes the object identifier, temperature-modifying receptacle, and final target receptacle as inputs, and outputs the object at the target location with its temperature state changed. (score=0.4800, rerank=0.4800, seed rank 1)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-temperature-regulator/SKILL.md\n- alfworld-heat-object-with-appliance: Uses a heating appliance (microwave, stoveburner, oven) to apply heat to a specified object. Use when the task requires warming or cooking an item (e.g., \"heat some egg\", \"warm the mug\") and a heating appliance is available. Takes the object name and appliance name as input and outputs the object in a heated state, ready for placement at the task's target location. (score=0.2400, rerank=0.2400, seed rank 2)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-heat-object-with-appliance/SKILL.md\n- alfworld-object-heater: Heats a specified object using an available heating appliance (e.g., microwave, stoveburner). Use when you are holding an object that requires heating and need to navigate to and operate the heating appliance. Takes the object and appliance as inputs and results in the object being in a heated state. (score=0.1600, rerank=0.1600, seed rank 3)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-object-heater/SKILL.md\n- alfworld-object-cooler: Cools a held object using an appropriate cooling appliance such as a fridge or freezer. Use when the task requires reducing the temperature of an object (e.g., \"cool some pot\", \"chill the mug\") and the agent is already holding the object. Performs the ALFWorld `cool` action and outputs the cooled object ready for subsequent placement or serving steps. (score=0.1200, rerank=0.1200, seed rank 4)\n  Source: evaluation/skillsbench/skillsets/skills_500/alfworld-object-cooler/SKILL.md\n\n### Query Schema\n- goal: put a hot potato in fridge alfworld household manipulation embodied task planning heat_and_place navigate take move open close heat cool clean look potato fridge fridge required_state=hot count=1 optimize for shortest valid action sequence environment=alfworld object=potato target_receptacle=fridge device=fridge alfworld-heat_and_place\n- task_name: put-a-hot-potato-in-fridge-alfworld-household\n\n### Semantic Seeds\n- alfworld-temperature-regulator (seed weight=0.4800, rank=1)\n- alfworld-heat-object-with-appliance (seed weight=0.2400, rank=2)\n- alfworld-object-heater (seed weight=0.1600, rank=3)\n- alfworld-object-cooler (seed weight=0.1200, rank=4)",
+    "retrieval_query": "put a hot potato in fridge\nalfworld\nhousehold manipulation\nembodied task planning\nheat_and_place\nnavigate\ntake\nmove\nopen\nclose\nheat\ncool\nclean\nlook\npotato\nfridge\nfridge\nrequired_state=hot\ncount=1\noptimize for shortest valid action sequence\nenvironment=alfworld\nobject=potato\ntarget_receptacle=fridge\ndevice=fridge\nalfworld-heat_and_place",
+    "runtime_skill_events": [
+        {
+            "step": 1,
+            "trigger": "agent_request:vector_retrieve",
+            "query": "hot potato cooling fridge",
+            "skill_names": [
+                "alfworld-object-cooler",
+                "alfworld-temperature-regulator"
+            ]
+        },
+        {
+            "step": 2,
+            "trigger": "agent_request:read_skill",
+            "query": "alfworld-temperature-regulator",
+            "skill_names": [
+                "alfworld-temperature-regulator"
+            ]
+        },
+        {
+            "step": 3,
+            "trigger": "agent_request:vector_retrieve",
+            "query": "hot potato location",
+            "skill_names": [
+                "alfworld-locate-target-object",
+                "alfworld-heat-object-with-appliance"
+            ]
+        },
+        {
+            "step": 4,
+            "trigger": "agent_request:read_skill",
+            "query": "alfworld-locate-target-object",
+            "skill_names": [
+                "alfworld-locate-target-object"
+            ]
+        }
+    ],
+    "token_usage": {
+        "llm_calls": 30,
+        "prompt_tokens": 109527,
+        "completion_tokens": 1069,
+        "total_tokens": 110596,
+        "last_prompt_tokens": 4576,
+        "last_completion_tokens": 47,
+        "last_total_tokens": 4623,
+        "max_prompt_tokens": 4576,
+        "max_completion_tokens": 78,
+        "max_total_tokens": 4623,
+        "cached_prompt_tokens": 98816,
+        "cache_creation_input_tokens": 0,
+        "reasoning_tokens": 0,
+        "buckets": {
+            "agent": {
+                "llm_calls": 30,
+                "prompt_tokens": 109527,
+                "completion_tokens": 1069,
+                "total_tokens": 110596,
+                "last_prompt_tokens": 4576,
+                "last_completion_tokens": 47,
+                "last_total_tokens": 4623,
+                "max_prompt_tokens": 4576,
+                "max_completion_tokens": 78,
+                "max_total_tokens": 4623,
+                "cached_prompt_tokens": 98816,
+                "cache_creation_input_tokens": 0,
+                "reasoning_tokens": 0
+            },
+            "aux": {
+                "llm_calls": 0,
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+                "last_prompt_tokens": 0,
+                "last_completion_tokens": 0,
+                "last_total_tokens": 0,
+                "max_prompt_tokens": 0,
+                "max_completion_tokens": 0,
+                "max_total_tokens": 0,
+                "cached_prompt_tokens": 0,
+                "cache_creation_input_tokens": 0,
+                "reasoning_tokens": 0
+            }
+        }
+    },
+    "started_at": "2026-06-14T10:53:34.209970+00:00",
+    "finished_at": "2026-06-14T10:54:35.588082+00:00",
+    "agent_runtime_seconds": 61.378
+}
