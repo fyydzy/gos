@@ -317,6 +317,9 @@ find results/alfworld/gpt-4o/dev_full_gos_run1_mode_gos -name "idx_*.json" | wc 
 ```bash
 uv run python evaluation/aggregate_alfworld_results.py \
   results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos
+
+uv run python evaluation/aggregate_alfworld_results.py \
+  results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_vector
 ```
 
 **2）smoke / 前 10 局（`--max_games 10` 时目录名示例，需显式 `--expected-games 10`）：**
