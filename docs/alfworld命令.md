@@ -19,6 +19,16 @@ export API_KEY="$OPENAI_API_KEY"
 export BASE_URL="$OPENAI_BASE_URL"
 ```
 
+```bash
+# 智增增后台密钥；不要写进 git
+export API_KEY="<智增增后台密钥key>"
+export BASE_URL="https://api.zhizengzeng.com/v1"
+
+# 当前实测可用：MiniMax-M2.7-highspeed
+# MiniMax-M2.7 会返回 “model or service ID does not exist”
+export ALFWORLD_MODEL="MiniMax-M2.7-highspeed"
+```
+
 由于 ALFWorld 直接在服务器上运行，且服务器可以直连智增增接口，因此清除此前为 Docker 配置的代理变量：
 
 ```bash
@@ -33,8 +43,8 @@ test -n "$API_KEY" && echo "API_KEY loaded"
 echo "$BASE_URL"
 
 ls "$ALFWORLD_DATA/json_2.1.1/valid_unseen" >/dev/null && echo "ALFWorld data ready"
-ls data/skillsets/skills_200 >/dev/null && echo "skills_200 ready"
-ls data/gos_workspace/skills_200_v1 >/dev/null && echo "workspace ready"
+ls data/skillsets/skills_alfworld37 >/dev/null && echo "skills_alfworld37 ready"
+ls data/gos_workspace/skills_alfworld37_v1 >/dev/null && echo "workspace ready"
 ```
 
 正常应看到：
@@ -44,11 +54,13 @@ ls data/gos_workspace/skills_200_v1 >/dev/null && echo "workspace ready"
 API_KEY loaded
 https://api.zhizengzeng.com/v1
 ALFWorld data ready
-skills_200 ready
+skills_alfworld37 ready
 workspace ready
 ```
 
 ---
+
+
 
 ## 2. 单任务四种模式对比
 
@@ -58,87 +70,95 @@ workspace ready
 
 ```bash
 uv run python evaluation/alfworld_run.py \
-  --model gpt-4o \
+  --model "$ALFWORLD_MODEL" \
   --split eval_out_of_distribution \
   --use_skill \
   --mode gos \
-  --gos_workspace data/gos_workspace/skills_200_v1 \
-  --skills_dir data/skillsets/skills_200 \
+  --gos_workspace data/gos_workspace/skills_alfworld37_v1 \
+  --skills_dir data/skillsets/skills_alfworld37 \
   --task_indices 0 \
   --max_workers 1 \
   --max_steps 30 \
-  --exp_name compare_idx0_gos
+  --exp_name compare_idx0_gos_alfworld37_minimax_m27_highspeed
 ```
 
 结果文件：
 
 ```text
-results/alfworld/gpt-4o/eval_out_of_distribution_compare_idx0_gos_mode_gos/idx_0.json
+results/alfworld/MiniMax-M2.7-highspeed/eval_out_of_distribution_compare_idx0_gos_alfworld37_minimax_m27_highspeed_mode_gos/idx_0.json
 ```
+
+
 
 ### 2.2 Vector Skills 模式
 
 ```bash
 uv run python evaluation/alfworld_run.py \
-  --model gpt-4o \
+  --model "$ALFWORLD_MODEL" \
   --split eval_out_of_distribution \
   --use_skill \
   --mode vector \
-  --gos_workspace data/gos_workspace/skills_200_v1 \
-  --skills_dir data/skillsets/skills_200 \
+  --gos_workspace data/gos_workspace/skills_alfworld37_v1 \
+  --skills_dir data/skillsets/skills_alfworld37 \
   --task_indices 0 \
   --max_workers 1 \
   --max_steps 30 \
-  --exp_name compare_idx0_vector
+  --exp_name compare_idx0_vector_alfworld37_minimax_m27_highspeed
 ```
 
 结果文件：
 
 ```text
-results/alfworld/gpt-4o/eval_out_of_distribution_compare_idx0_vector_mode_vector/idx_0.json
+results/alfworld/MiniMax-M2.7-highspeed/eval_out_of_distribution_compare_idx0_vector_alfworld37_minimax_m27_highspeed_mode_vector/idx_0.json
 ```
+
+
 
 ### 2.3 All Full Skills 模式
 
 ```bash
 uv run python evaluation/alfworld_run.py \
-  --model gpt-4o \
+  --model "$ALFWORLD_MODEL" \
   --split eval_out_of_distribution \
   --use_skill \
   --mode all_full \
-  --skills_dir data/skillsets/skills_200 \
+  --skills_dir data/skillsets/skills_alfworld37 \
   --task_indices 0 \
   --max_workers 1 \
   --max_steps 30 \
-  --exp_name compare_idx0_allfull
+  --exp_name compare_idx0_allfull_alfworld37_minimax_m27_highspeed
 ```
 
 结果文件：
 
 ```text
-results/alfworld/gpt-4o/eval_out_of_distribution_compare_idx0_allfull_mode_all_full/idx_0.json
+results/alfworld/MiniMax-M2.7-highspeed/eval_out_of_distribution_compare_idx0_allfull_alfworld37_minimax_m27_highspeed_mode_all_full/idx_0.json
 ```
+
+
 
 ### 2.4 No Skills 模式
 
 ```bash
 uv run python evaluation/alfworld_run.py \
-  --model gpt-4o \
+  --model "$ALFWORLD_MODEL" \
   --split eval_out_of_distribution \
   --mode none \
   --task_indices 0 \
   --max_workers 1 \
   --max_steps 30 \
-  --exp_name compare_idx0_none
+  --exp_name compare_idx0_none_minimax_m27_highspeed
 ```
 
 结果文件：
 
 ```text
-results/alfworld/gpt-4o/eval_out_of_distribution_compare_idx0_none_mode_none/idx_0.json
+results/alfworld/MiniMax-M2.7-highspeed/eval_out_of_distribution_compare_idx0_none_minimax_m27_highspeed_mode_none/idx_0.json
 ```
 
 ---
+
+
 
 ## 3. 前 10 个任务的四种模式对比
 
@@ -152,26 +172,68 @@ results/alfworld/gpt-4o/eval_out_of_distribution_compare_idx0_none_mode_none/idx
 
 这样可以保证实验设置一致。
 
+### 3.0 只用 37 个 ALFWorld 技能的独立技能库
+
+`skills_500` 里包含 37 个 `alfworld-*` 专用技能，但也混有大量其它领域技能。若要单独评测「只给 ALFWorld 技能」的设置，先抽取独立 skillset，并构建匹配的 GoS workspace：
+
+```bash
+# 一条命令完成复制 + 建索引；脚本会读取仓库根目录 .env
+python3 scripts/extract_alfworld37_skills.py --clear --index
+```
+
+如果只想先复制技能、不建 workspace：
+
+```bash
+python3 scripts/extract_alfworld37_skills.py --clear
+```
+
+如果索引时报 `OpenAIException - Connection error`，说明当前终端访问 embedding 接口失败；先确认 `.env` 中的 GoS embedding 配置可用，再重跑 `python3 scripts/extract_alfworld37_skills.py --clear --index`。
+
+后续 ALFWorld 命令使用这对目录：
+
+```bash
+--skills_dir data/skillsets/skills_alfworld37
+--gos_workspace data/gos_workspace/skills_alfworld37_v1
+```
+
+例如用 **MiniMax M2.7-highspeed** 跑前 10 局 GoS：
+
+```bash
+uv run python evaluation/alfworld_run.py \
+  --model "$ALFWORLD_MODEL" \
+  --split dev \
+  --use_skill \
+  --mode gos \
+  --gos_workspace data/gos_workspace/skills_alfworld37_v1 \
+  --skills_dir data/skillsets/skills_alfworld37 \
+  --max_games 10 \
+  --max_workers 1 \
+  --max_steps 30 \
+  --exp_name eval10_gos_alfworld37_minimax_m27_highspeed
+```
+
+
+
 ### 3.1 GoS 模式：前 10 个任务
 
 ```bash
 uv run python evaluation/alfworld_run.py \
-  --model gpt-4o-mini \
+  --model "$ALFWORLD_MODEL" \
   --split dev \
   --use_skill \
   --mode gos \
-  --gos_workspace data/gos_workspace/skills_500_v1 \
-  --skills_dir data/skillsets/skills_500 \
+  --gos_workspace data/gos_workspace/skills_alfworld37_v1 \
+  --skills_dir data/skillsets/skills_alfworld37 \
   --max_games 10 \
   --max_workers 1 \
   --max_steps 30 \
-  --exp_name eval10_gos_skills500
+  --exp_name eval10_gos_alfworld37_minimax_m27_highspeed
 ```
 
 结果目录：
 
 ```text
-results/alfworld/gpt-4o/eval_out_of_distribution_eval10_gos_mode_gos/
+results/alfworld/MiniMax-M2.7-highspeed/dev_eval10_gos_alfworld37_minimax_m27_highspeed_mode_gos/
 ```
 
 其中每个任务对应一个结果文件，例如：
@@ -183,71 +245,77 @@ idx_1.json
 idx_9.json
 ```
 
+
+
 ### 3.2 Vector Skills 模式：前 10 个任务
 
 ```bash
 uv run python evaluation/alfworld_run.py \
-  --model gpt-4o \
-  --split eval_out_of_distribution \
+  --model "$ALFWORLD_MODEL" \
+  --split dev \
   --use_skill \
   --mode vector \
-  --gos_workspace data/gos_workspace/skills_500_v1 \
-  --skills_dir data/skillsets/skills_500 \
+  --gos_workspace data/gos_workspace/skills_alfworld37_v1 \
+  --skills_dir data/skillsets/skills_alfworld37 \
   --max_games 10 \
   --max_workers 1 \
   --max_steps 30 \
-  --exp_name eval10_vector
+  --exp_name eval10_vector_alfworld37_minimax_m27_highspeed
 ```
 
 结果目录：
 
 ```text
-results/alfworld/gpt-4o/eval_out_of_distribution_eval10_vector_mode_vector/
+results/alfworld/MiniMax-M2.7-highspeed/dev_eval10_vector_alfworld37_minimax_m27_highspeed_mode_vector/
 ```
+
+
 
 ### 3.3 All Full Skills 模式：前 10 个任务
 
 ```bash
 uv run python evaluation/alfworld_run.py \
-  --model gpt-4o \
-  --split eval_out_of_distribution \
+  --model "$ALFWORLD_MODEL" \
+  --split dev \
   --use_skill \
   --mode all_full \
-  --skills_dir data/skillsets/skills_500 \
+  --skills_dir data/skillsets/skills_alfworld37 \
   --max_games 10 \
   --max_workers 1 \
   --max_steps 30 \
-  --exp_name eval10_allfull
+  --exp_name eval10_allfull_alfworld37_minimax_m27_highspeed
 ```
 
 结果目录：
 
 ```text
-results/alfworld/gpt-4o/eval_out_of_distribution_eval10_allfull_mode_all_full/
+results/alfworld/MiniMax-M2.7-highspeed/dev_eval10_allfull_alfworld37_minimax_m27_highspeed_mode_all_full/
 ```
 
-注意：`all_full` 会将完整技能库加入上下文，token 消耗可能明显高于其他模式。
+注意：`all_full` 会将抽取后的 37 个 ALFWorld 技能全部加入上下文，token 消耗可能明显高于其他模式。
 
 ### 3.4 No Skills 模式：前 10 个任务
 
 ```bash
 uv run python evaluation/alfworld_run.py \
-  --model gpt-4o \
-  --split eval_out_of_distribution \
+  --model "$ALFWORLD_MODEL" \
+  --split dev \
   --mode none \
   --max_games 10 \
   --max_workers 1 \
   --max_steps 30 \
-  --exp_name eval10_none
+  --exp_name eval10_none_minimax_m27_highspeed
 ```
 
 结果目录：
 
 ```text
-results/alfworld/gpt-4o/eval_out_of_distribution_eval10_none_mode_none/
+results/alfworld/MiniMax-M2.7-highspeed/dev_eval10_none_minimax_m27_highspeed_mode_none/
 ```
 
 ---
+
+
 
 ## 4. 运行顺序建议
 
@@ -270,25 +338,35 @@ results/alfworld/gpt-4o/eval_out_of_distribution_eval10_none_mode_none/
 
 ```bash
 # 第一次
-uv run python evaluation/alfworld_run.py --model gpt-4o-mini --split dev --use_skill --mode gos --gos_workspace data/gos_workspace/skills_500_v1 --skills_dir data/skillsets/skills_500 --max_workers 1 --max_steps 30 --exp_name full_gos_run1
-# 第二次：将 --exp_name 改为 full_gos_run2
+uv run python evaluation/alfworld_run.py --model "$ALFWORLD_MODEL" --split dev --use_skill --mode gos --gos_workspace data/gos_workspace/skills_alfworld37_v1 --skills_dir data/skillsets/skills_alfworld37 --max_workers 1 --max_steps 30 --exp_name full_gos_alfworld37_minimax_m27_highspeed_run1
+# 第二次：将 --exp_name 改为 full_gos_alfworld37_minimax_m27_highspeed_run2
 ```
 
 **5.2 Vector 全量（跑2次）**
 
 ```bash
 # 第一次
-uv run python evaluation/alfworld_run.py --model gpt-4o-mimi --split dev --use_skill --mode vector --gos_workspace data/gos_workspace/skills_500_v1 --skills_dir data/skillsets/skills_500 --max_workers 1 --max_steps 30 --exp_name full_vector_run1
-# 第二次：将 --exp_name 改为 full_vector_run2
+uv run python evaluation/alfworld_run.py --model "$ALFWORLD_MODEL" --split dev --use_skill --mode vector --gos_workspace data/gos_workspace/skills_alfworld37_v1 --skills_dir data/skillsets/skills_alfworld37 --max_workers 1 --max_steps 30 --exp_name full_vector_alfworld37_minimax_m27_highspeed_run1
+# 第二次：将 --exp_name 改为 full_vector_alfworld37_minimax_m27_highspeed_run2
 ```
 
 **5.3 All Full 全量（跑2次）**
 
 ```bash
 # 第一次
-uv run python evaluation/alfworld_run.py --model gpt-4o --split dev --use_skill --mode all_full --skills_dir data/skillsets/skills_200 --max_workers 1 --max_steps 30 --exp_name full_allfull_run1
-# 第二次：将 --exp_name 改为 full_allfull_run2
+uv run python evaluation/alfworld_run.py --model "$ALFWORLD_MODEL" --split dev --use_skill --mode all_full --skills_dir data/skillsets/skills_alfworld37 --max_workers 1 --max_steps 30 --exp_name full_allfull_alfworld37_minimax_m27_highspeed_run1
+# 第二次：将 --exp_name 改为 full_allfull_alfworld37_minimax_m27_highspeed_run2
 ```
+
+**5.4 No Skills 全量（跑2次）**
+
+```bash
+# 第一次
+uv run python evaluation/alfworld_run.py --model "$ALFWORLD_MODEL" --split dev --mode none --max_workers 1 --max_steps 30 --exp_name full_none_minimax_m27_highspeed_run1
+# 第二次：将 --exp_name 改为 full_none_minimax_m27_highspeed_run2
+```
+
+
 
 ### 6. 结果检验与对比指标
 
@@ -296,7 +374,7 @@ uv run python evaluation/alfworld_run.py --model gpt-4o --split dev --use_skill 
 
 ```bash
 # 检查数量示例
-find results/alfworld/gpt-4o/dev_full_gos_run1_mode_gos -name "idx_*.json" | wc -l
+find results/alfworld/MiniMax-M2.7-highspeed/dev_full_gos_alfworld37_minimax_m27_highspeed_run1_mode_gos -name "idx_*.json" | wc -l
 ```
 
 **汇总核心指标**（脚本：`evaluation/aggregate_alfworld_results.py`）
@@ -312,46 +390,46 @@ find results/alfworld/gpt-4o/dev_full_gos_run1_mode_gos -name "idx_*.json" | wc 
 | 平均 agent-only runtime | `agent_runtime_seconds`（不含环境 init） |
 
 
-**1）140 局完整实验（默认 `--expected-games 140`，缺局会提示缺失 idx）：**
+**1）140 局完整实验（默认** `--expected-games 140`**，缺局会提示缺失 idx）：**
 
 ```bash
 uv run python evaluation/aggregate_alfworld_results.py \
-  results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos
+  results/alfworld/MiniMax-M2.7-highspeed/dev_full_gos_alfworld37_minimax_m27_highspeed_run1_mode_gos
 
 uv run python evaluation/aggregate_alfworld_results.py \
-  results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_vector
+  results/alfworld/MiniMax-M2.7-highspeed/dev_full_vector_alfworld37_minimax_m27_highspeed_run1_mode_vector
 ```
 
-**2）smoke / 前 10 局（`--max_games 10` 时目录名示例，需显式 `--expected-games 10`）：**
+**2）smoke / 前 10 局（**`--max_games 10` **时目录名示例，需显式** `--expected-games 10`**）：**
 
 ```bash
 uv run python evaluation/aggregate_alfworld_results.py \
-  results/alfworld/gpt-4o-mini/dev_eval10_gos_skills500_mode_gos \
+  results/alfworld/MiniMax-M2.7-highspeed/dev_eval10_gos_alfworld37_minimax_m27_highspeed_mode_gos \
   --expected-games 10
 ```
 
-**3）论文两次 run 对比（表格 + `mean_of_runs` 行，即两次 run 各指标再取平均）：**
+**3）论文两次 run 对比（表格 +** `mean_of_runs` **行，即两次 run 各指标再取平均）：**
 
 ```bash
 uv run python evaluation/aggregate_alfworld_results.py --compare \
-  results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos \
-  results/alfworld/gpt-4o-mini/dev_full_gos_run2_mode_gos
+  results/alfworld/MiniMax-M2.7-highspeed/dev_full_gos_alfworld37_minimax_m27_highspeed_run1_mode_gos \
+  results/alfworld/MiniMax-M2.7-highspeed/dev_full_gos_alfworld37_minimax_m27_highspeed_run2_mode_gos
 ```
 
 **4）机器可读 JSON（写表 / 脚本下游用）：**
 
 ```bash
 uv run python evaluation/aggregate_alfworld_results.py --json \
-  results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos
+  results/alfworld/MiniMax-M2.7-highspeed/dev_full_gos_alfworld37_minimax_m27_highspeed_run1_mode_gos
 ```
 
 **5）同时看多组实验（例如 gos / vector / none 各跑完一次）：**
 
 ```bash
 uv run python evaluation/aggregate_alfworld_results.py --compare \
-  results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos \
-  results/alfworld/gpt-4o-mini/dev_full_vector_run1_mode_vector \
-  results/alfworld/gpt-4o-mini/dev_full_none_run1_mode_none
+  results/alfworld/MiniMax-M2.7-highspeed/dev_full_gos_alfworld37_minimax_m27_highspeed_run1_mode_gos \
+  results/alfworld/MiniMax-M2.7-highspeed/dev_full_vector_alfworld37_minimax_m27_highspeed_run1_mode_vector \
+  results/alfworld/MiniMax-M2.7-highspeed/dev_full_none_minimax_m27_highspeed_run1_mode_none
 ```
 
 结果目录命名规则（与 `alfworld_run.py` 一致）：
@@ -360,7 +438,7 @@ uv run python evaluation/aggregate_alfworld_results.py --compare \
 results/alfworld/{model}/{split}_{exp_name}_mode_{mode}/
 ```
 
-例如：`results/alfworld/gpt-4o-mini/dev_full_gos_run1_mode_gos/idx_0.json`
+例如：`results/alfworld/MiniMax-M2.7-highspeed/dev_full_gos_alfworld37_minimax_m27_highspeed_run1_mode_gos/idx_0.json`
 
 ```bash
 # 1. 追踪并保存所有修改过的文件（注意 add 后面有个空格和英文句号）
