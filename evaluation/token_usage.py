@@ -61,6 +61,14 @@ def _safe_int(value):
     return value if isinstance(value, int) else None
 
 
+def _first_int(*values):
+    for value in values:
+        value = _safe_int(value)
+        if value is not None:
+            return value
+    return None
+
+
 def _get_usage_detail(usage, key):
     for path in _DETAIL_PATHS.get(key, []):
         current = usage
@@ -79,9 +87,15 @@ def _apply_usage(stats, usage):
         return
 
     numeric_keys = {
-        "prompt_tokens": _safe_int(getattr(usage, "prompt_tokens", None)),
-        "completion_tokens": _safe_int(getattr(usage, "completion_tokens", None)),
-        "total_tokens": _safe_int(getattr(usage, "total_tokens", None)),
+        "prompt_tokens": _first_int(
+            getattr(usage, "prompt_tokens", None),
+            getattr(usage, "input_tokens", None),
+        ),
+        "completion_tokens": _first_int(
+            getattr(usage, "completion_tokens", None),
+            getattr(usage, "output_tokens", None),
+        ),
+        "total_tokens": _first_int(getattr(usage, "total_tokens", None)),
     }
     for key, value in numeric_keys.items():
         if value is None:
@@ -111,8 +125,18 @@ def get_usage_debug_fields(usage):
         return {}
 
     fields = {}
-    for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
-        value = _safe_int(getattr(usage, key, None))
+    numeric_keys = {
+        "prompt_tokens": _first_int(
+            getattr(usage, "prompt_tokens", None),
+            getattr(usage, "input_tokens", None),
+        ),
+        "completion_tokens": _first_int(
+            getattr(usage, "completion_tokens", None),
+            getattr(usage, "output_tokens", None),
+        ),
+        "total_tokens": _first_int(getattr(usage, "total_tokens", None)),
+    }
+    for key, value in numeric_keys.items():
         if value is not None:
             fields[key] = value
 

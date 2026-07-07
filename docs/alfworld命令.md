@@ -212,6 +212,84 @@ uv run python evaluation/alfworld_run.py \
   --exp_name eval10_gos_alfworld37_minimax_m27_highspeed
 ```
 
+如果你要先用 **gpt-5.3-codex** 跑前 10 局，先切模型变量：
+
+```bash
+export ALFWORLD_MODEL="gpt-5.3-codex"
+```
+
+`gpt-5.3-codex` 需要走 OpenAI Responses API。代码默认 `LLM_API_TYPE=auto`，会自动让 `gpt-5.3-codex` 走 responses，其它模型仍走原来的 `chat.completions`。如果以后要强制改回原逻辑：
+
+```bash
+export LLM_API_TYPE="chat"
+```
+
+如果要显式指定走 responses：
+
+```bash
+export LLM_API_TYPE="responses"
+```
+
+先跑 GoS（推荐先 smoke 这一条）：
+
+```bash
+uv run python evaluation/alfworld_run.py \
+  --model "$ALFWORLD_MODEL" \
+  --split dev \
+  --use_skill \
+  --mode gos \
+  --gos_workspace data/gos_workspace/skills_alfworld37_v1 \
+  --skills_dir data/skillsets/skills_alfworld37 \
+  --max_games 10 \
+  --max_workers 1 \
+  --max_steps 30 \
+  --exp_name eval10_gos_alfworld37_gpt53codex
+```
+
+如果要直接跑前 10 局四种模式，对应命令如下（仅 `--mode` / `--exp_name` 不同）：
+
+```bash
+# 1) GoS
+uv run python evaluation/alfworld_run.py \
+  --model "$ALFWORLD_MODEL" \
+  --split dev \
+  --use_skill \
+  --mode gos \
+  --gos_workspace data/gos_workspace/skills_alfworld37_v1 \
+  --skills_dir data/skillsets/skills_alfworld37 \
+  --max_games 10 --max_workers 1 --max_steps 30 \
+  --exp_name eval10_gos_alfworld37_gpt53codex
+
+# 2) Vector
+uv run python evaluation/alfworld_run.py \
+  --model "$ALFWORLD_MODEL" \
+  --split dev \
+  --use_skill \
+  --mode vector \
+  --gos_workspace data/gos_workspace/skills_alfworld37_v1 \
+  --skills_dir data/skillsets/skills_alfworld37 \
+  --max_games 10 --max_workers 1 --max_steps 30 \
+  --exp_name eval10_vector_alfworld37_gpt53codex
+
+# 3) All Full
+uv run python evaluation/alfworld_run.py \
+  --model "$ALFWORLD_MODEL" \
+  --split dev \
+  --use_skill \
+  --mode all_full \
+  --skills_dir data/skillsets/skills_alfworld37 \
+  --max_games 10 --max_workers 1 --max_steps 30 \
+  --exp_name eval10_allfull_alfworld37_gpt53codex
+
+# 4) None
+uv run python evaluation/alfworld_run.py \
+  --model "$ALFWORLD_MODEL" \
+  --split dev \
+  --mode none \
+  --max_games 10 --max_workers 1 --max_steps 30 \
+  --exp_name eval10_none_gpt53codex
+```
+
 
 
 ### 3.1 GoS 模式：前 10 个任务

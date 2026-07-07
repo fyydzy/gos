@@ -51,6 +51,13 @@ DEFAULT_SKILLS_DIR = "data/skillsets/skills_200"
 DEFAULT_GOS_WORKSPACE = "data/gos_workspace/skills_200_v1"
 # LLM 单次请求超时秒数；环境变量没设就用 90
 LLM_REQUEST_TIMEOUT_SECS = float(os.environ.get("LLM_REQUEST_TIMEOUT_SECS", "90"))
+# LLM_API_TYPE=auto 时，仅这些模型走 Responses API；LLM_API_TYPE=chat 可强制改回原逻辑。
+LLM_API_TYPE = os.environ.get("LLM_API_TYPE", "auto").strip().lower()
+RESPONSES_API_MODELS = {
+    name.strip()
+    for name in os.environ.get("LLM_RESPONSES_API_MODELS", "gpt-5.3-codex").split(",")
+    if name.strip()
+}
 
 # 全局 LLM 客户端；运行前必须 export API_KEY 和 BASE_URL
 client = OpenAI(
@@ -84,6 +91,33 @@ def _last_message_preview(messages, limit=240):
     return compact  # 原样返回
 
 
+def _use_responses_api(model):
+    """Keep chat.completions as default; opt into Responses only for known models."""
+    if LLM_API_TYPE in {"responses", "response"}:
+        return True
+    if LLM_API_TYPE in {"chat", "chat_completions"}:
+        return False
+    return model in RESPONSES_API_MODELS
+
+
+def _extract_response_text(response, *, uses_responses_api):
+    """Extract text from either Chat Completions or Responses API results."""
+    if not uses_responses_api:
+        return response.choices[0].message.content
+
+    output_text = getattr(response, "output_text", None)
+    if output_text:
+        return output_text
+
+    chunks = []
+    for item in getattr(response, "output", []) or []:
+        for part in getattr(item, "content", []) or []:
+            text = getattr(part, "text", None)
+            if text:
+                chunks.append(text)
+    return "\n".join(chunks) if chunks else None
+
+
 @retry(tries=5, delay=5, backoff=2, jitter=(1, 3))  # 最多重试 5 次，间隔指数退避
 def llm(prompt, model="YOUR_MODEL_NAME"):
     """调一次聊天模型；prompt 可以是字符串或 messages 列表。"""
@@ -95,17 +129,26 @@ def llm(prompt, model="YOUR_MODEL_NAME"):
         raise ValueError(f'prompt must be a list or a string, but got {type(prompt)}')
 
     message_count, total_chars = _message_stats(messages)  # 统计规模
+    uses_responses_api = _use_responses_api(model)
+    api_type = "responses" if uses_responses_api else "chat.completions"
     print(  # 打日志：用的模型、消息数、字符数、超时
         f'Calling LLM with model: {model} '
-        f'(messages={message_count}, chars={total_chars}, timeout={LLM_REQUEST_TIMEOUT_SECS}s)'
+        f'(api={api_type}, messages={message_count}, chars={total_chars}, timeout={LLM_REQUEST_TIMEOUT_SECS}s)'
     )
     
     try:
-        response = client.chat.completions.create(  # 真正发 HTTP 请求
-            model=model,  # 模型名，来自 --model
-            messages=messages,  # 完整对话历史
-            timeout=LLM_REQUEST_TIMEOUT_SECS,  # 超时秒数
-        )
+        if uses_responses_api:
+            response = client.responses.create(
+                model=model,  # 模型名，来自 --model
+                input=messages,  # Responses API 也接受 role/content 对话列表
+                timeout=LLM_REQUEST_TIMEOUT_SECS,  # 超时秒数
+            )
+        else:
+            response = client.chat.completions.create(  # 真正发 HTTP 请求
+                model=model,  # 模型名，来自 --model
+                messages=messages,  # 完整对话历史
+                timeout=LLM_REQUEST_TIMEOUT_SECS,  # 超时秒数
+            )
     except Exception as exc:  # 网络/限流/超时等
         print(  # 红色打印失败原因 + 最后一条消息预览
             f'{Colors.RED}LLM request failed '
@@ -135,7 +178,7 @@ def llm(prompt, model="YOUR_MODEL_NAME"):
             f"{Colors.BLUE}LLM usage: {'; '.join(usage_parts)}{Colors.RESET}"
         )
 
-    content = response.choices[0].message.content  # 模型回复正文
+    content = _extract_response_text(response, uses_responses_api=uses_responses_api)  # 模型回复正文
     if content is not None:
         return content  # 正常返回字符串
     return "Output Error"  # 模型没给 content 时的兜底
